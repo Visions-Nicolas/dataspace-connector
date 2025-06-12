@@ -1,16 +1,9 @@
 import { getModalOrigins } from '../libs/loaders/configuration';
 import cors from 'cors';
 
-export const publicCorsOptions = {
-    origin: '*',
-    methods: ['GET', 'POST'],
-};
-
-export const privateCorsOptions = {
-    origin: '*',
-    methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
-};
-
+/**
+ * Custom cors
+ */
 export const customCorsOptions: cors.CorsOptions = {
     origin: async (origin, callback) => {
         const modalOrigins = await getModalOrigins();

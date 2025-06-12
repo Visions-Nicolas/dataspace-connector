@@ -12,7 +12,7 @@ services:
     volumes:
       - './src/:/usr/src/app/src'
     ports:
-      - 3002:${PORT}
+      - ${PORT}:${DOCKER_PORT}
 #    links:
 #      - mongodb
     environment:
