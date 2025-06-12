@@ -12,7 +12,7 @@ import {
  * @param req
  * @param res
  * @param next
- * @return restfulResponse
+ * @return Promise<Response<RestfulResponse>>
  */
 export const getCredentials = async (
     req: Request,

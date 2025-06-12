@@ -43,7 +43,11 @@ const filterOnly = (level: string) => {
 
 const zFormat = format.combine(
     format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-    format.printf((info) => `${info.timestamp} ${info.level}: ${info.message}`),
+    format.printf((info) => {
+        const colorizer = format.colorize().colorize;
+        const rawMessage = `${info.timestamp} [PDC][${info.level}]: ${info.message}`;
+        return colorizer(info.level, rawMessage);
+    }),
     format.json()
 );
 
@@ -51,9 +55,11 @@ const customFormat = (level: string) => {
     return format.combine(
         filterOnly(level),
         format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-        format.printf(
-            (info) => `${info.timestamp} ${info.level}: ${info.message}`
-        ),
+        format.printf((info) => {
+            const colorizer = format.colorize().colorize;
+            const rawMessage = `${info.timestamp} [PDC][${info.level}]: ${info.message}`;
+            return colorizer(info.level, rawMessage);
+        }),
         format.json()
     );
 };
@@ -77,10 +83,11 @@ const loggerTransports = [
     new transports.Console({
         format: format.combine(
             format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-            format.colorize({ all: true }),
-            format.printf(
-                (info) => `${info.timestamp} ${info.level}: ${info.message}`
-            )
+            format.printf((info) => {
+                const colorizer = format.colorize().colorize;
+                const rawMessage = `${info.timestamp} [PDC][${info.level}]: ${info.message}`;
+                return colorizer(info.level, rawMessage);
+            })
         ),
     }),
     new DailyRotateFile({
@@ -101,9 +108,11 @@ const loggerTransports = [
         filename: path.join(__dirname, '../logs/all/all_%DATE%.log'),
         format: format.combine(
             format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-            format.printf(
-                (info) => `${info.timestamp} ${info.level}: ${info.message}`
-            )
+            format.printf((info) => {
+                const colorizer = format.colorize().colorize;
+                const rawMessage = `${info.timestamp} [PDC][${info.level}]: ${info.message}`;
+                return colorizer(info.level, rawMessage);
+            })
         ),
         level: 'info',
     }),

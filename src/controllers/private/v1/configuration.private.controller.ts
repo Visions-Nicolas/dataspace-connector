@@ -15,6 +15,7 @@ import {
  * @param req
  * @param res
  * @param next
+ * @return Promise<Response<RestfulResponse>>
  */
 export const getConfiguration = async (
     req: Request,
@@ -35,6 +36,7 @@ export const getConfiguration = async (
  * @param req
  * @param res
  * @param next
+ * @return Promise<Response<RestfulResponse>>
  */
 export const updateConfiguration = async (
     req: Request,
@@ -55,6 +57,7 @@ export const updateConfiguration = async (
  * @param req
  * @param res
  * @param next
+ * @return Promise<Response<RestfulResponse>>
  */
 export const updateConsentConfiguration = async (
     req: Request,
@@ -77,6 +80,7 @@ export const updateConsentConfiguration = async (
  * @param req
  * @param res
  * @param next
+ * @return Promise<Response<RestfulResponse>>
  */
 export const resetConfiguration = async (
     req: Request,
@@ -97,6 +101,7 @@ export const resetConfiguration = async (
  * @param req
  * @param res
  * @param next
+ * @return Promise<Response<RestfulResponse>>
  */
 export const reloadConfiguration = async (
     req: Request,
@@ -116,6 +121,7 @@ export const reloadConfiguration = async (
  * @param req
  * @param res
  * @param next
+ * @return Promise<Response<RestfulResponse>>
  */
 export const addCorsOrigin = async (
     req: Request,
@@ -136,6 +142,7 @@ export const addCorsOrigin = async (
  * @param req
  * @param res
  * @param next
+ * @return Promise<Response<RestfulResponse>>
  */
 export const removeCorsOrigin = async (
     req: Request,

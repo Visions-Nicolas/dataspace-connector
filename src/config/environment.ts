@@ -8,6 +8,9 @@ export const config: {
      */
     env: string;
 
+    /**
+     * Port where the app is running
+     */
     port: number;
 
     /**

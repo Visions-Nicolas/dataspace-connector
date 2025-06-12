@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import { RestfulResponse } from '../../utils/types/restfulResponse';
 
 /**
  * Returns a RESTful API response with only the resources and no extra payload information
@@ -10,7 +11,7 @@ export const restfulResponse = (
     res: Response,
     code: number,
     resource: object
-) => {
+): Response<RestfulResponse> => {
     return res.status(code ?? 500).json({
         timestamp: new Date().getTime(),
         code: code ?? 500,

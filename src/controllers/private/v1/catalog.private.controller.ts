@@ -12,6 +12,7 @@ import {
  * @param req
  * @param res
  * @param next
+ * @return Promise<Response<RestfulResponse>>
  */
 export const getCatalog = async (
     req: Request,
@@ -31,10 +32,11 @@ export const getCatalog = async (
 };
 
 /**
- * get a ressource by id
+ * get a resource by id
  * @param req
  * @param res
  * @param next
+ * @return Promise<Response<RestfulResponse>>
  */
 export const getCatalogById = async (
     req: Request,
@@ -55,6 +57,7 @@ export const getCatalogById = async (
  * @param req
  * @param res
  * @param next
+ * @return Promise<Response<RestfulResponse>>
  */
 export const updateCatalogById = async (
     req: Request,
@@ -75,6 +78,7 @@ export const updateCatalogById = async (
  * @param req
  * @param res
  * @param next
+ * @return Promise<Response<RestfulResponse>>
  */
 export const createCatalogResource = async (
     req: Request,

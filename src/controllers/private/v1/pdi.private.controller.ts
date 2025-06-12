@@ -7,6 +7,10 @@ import { consentManagerLogin } from './user.private.controller';
 
 /**
  * Get the Iframe url
+ * @param req
+ * @param res
+ * @param next
+ * @return Promise<Response<RestfulResponse>>
  */
 export const getIframeURL = async (
     req: Request,

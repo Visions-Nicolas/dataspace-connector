@@ -20,6 +20,7 @@ import { consentServiceResume } from '../../../libs/third-party/consent';
  * @param req
  * @param res
  * @param next
+ * @return Promise<Response<RestfulResponse>>
  */
 export const createUser = async (
     req: Request,
@@ -72,6 +73,7 @@ export const createUser = async (
  * @param req
  * @param res
  * @param next
+ * @return Promise<Response<RestfulResponse>>
  */
 export const getUsers = async (
     req: Request,
@@ -101,6 +103,7 @@ export const getUsers = async (
  * @param req
  * @param res
  * @param next
+ * @return Promise<Response<RestfulResponse>>
  */
 export const getUserById = async (
     req: Request,
@@ -124,6 +127,7 @@ export const getUserById = async (
  * @param req
  * @param res
  * @param next
+ * @return Promise<Response<RestfulResponse>>
  */
 export const getUserByEmail = async (
     req: Request,
@@ -147,6 +151,7 @@ export const getUserByEmail = async (
  * @param req
  * @param res
  * @param next
+ * @return Promise<Response<RestfulResponse>>
  */
 export const getUserByUserId = async (
     req: Request,
@@ -172,6 +177,7 @@ export const getUserByUserId = async (
  * @param req
  * @param res
  * @param next
+ * @return Promise<Response<RestfulResponse>>
  */
 export const updateUser = async (
     req: Request,
@@ -200,6 +206,7 @@ export const updateUser = async (
  * @param req
  * @param res
  * @param next
+ * @return Promise<Response<RestfulResponse>>
  */
 export const deleteUser = async (
     req: Request,
@@ -226,6 +233,7 @@ export const deleteUser = async (
  * @param req
  * @param res
  * @param next
+ * @return Promise<Response<RestfulResponse>>
  */
 export const excelExport = async (
     req: Request,
@@ -274,6 +282,7 @@ export const excelExport = async (
  * @param req
  * @param res
  * @param next
+ * @return Promise<Response<RestfulResponse>>
  */
 export const excelImport = async (
     req: Request,

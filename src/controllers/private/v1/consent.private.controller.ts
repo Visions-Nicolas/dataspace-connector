@@ -20,6 +20,10 @@ import { urlChecker } from '../../../utils/urlChecker';
 
 /**
  * Get consent by user JWT from consent manager
+ * @param req
+ * @param res
+ * @param next
+ * @return Promise<Response<RestfulResponse>>
  */
 export const getMyConsent = async (
     req: Request,
@@ -48,6 +52,7 @@ export const getMyConsent = async (
  * @param req
  * @param res
  * @param next
+ * @return Promise<Response<RestfulResponse>>
  */
 export const revokeConsent = async (
     req: Request,
@@ -73,6 +78,10 @@ export const revokeConsent = async (
 
 /**
  * Get consent by id and consent jwt
+ * @param req
+ * @param res
+ * @param next
+ * @return Promise<Response<RestfulResponse>>
  */
 export const getMyConsentById = async (
     req: Request,
@@ -98,6 +107,10 @@ export const getMyConsentById = async (
 
 /**
  * Get user consent
+ * @param req
+ * @param res
+ * @param next
+ * @return Promise<Response<RestfulResponse>>
  */
 export const getUserConsent = async (
     req: Request,
@@ -144,6 +157,10 @@ export const getUserConsent = async (
 
 /**
  * Get user consent By Id
+ * @param req
+ * @param res
+ * @param next
+ * @return Promise<Response<RestfulResponse>>
  */
 export const getUserConsentById = async (
     req: Request,
@@ -191,6 +208,10 @@ export const getUserConsentById = async (
 
 /**
  * Get user privacy notices
+ * @param req
+ * @param res
+ * @param next
+ * @return Promise<Response<RestfulResponse>>
  */
 export const getUserPrivacyNotices = async (
     req: Request,
@@ -215,6 +236,10 @@ export const getUserPrivacyNotices = async (
 
 /**
  * Get user privacy notices
+ * @param req
+ * @param res
+ * @param next
+ * @return Promise<Response<RestfulResponse>>
  */
 export const getUserPrivacyNoticesByContract = async (
     req: Request,
@@ -239,6 +264,10 @@ export const getUserPrivacyNoticesByContract = async (
 
 /**
  * Get user privacy notices by id
+ * @param req
+ * @param res
+ * @param next
+ * @return Promise<Response<RestfulResponse>>
  */
 export const getUserPrivacyNoticeById = async (
     req: Request,
@@ -263,6 +292,10 @@ export const getUserPrivacyNoticeById = async (
 
 /**
  * Give consent
+ * @param req
+ * @param res
+ * @param next
+ * @return Promise<Response<RestfulResponse>>
  */
 export const giveConsent = async (
     req: Request,
@@ -288,6 +321,10 @@ export const giveConsent = async (
 
 /**
  * Trigger the data exchange by the user based on a consent
+ * @param req
+ * @param res
+ * @param next
+ * @return Promise<Response<RestfulResponse>>
  */
 export const consentDataExchange = async (
     req: Request,
@@ -312,6 +349,10 @@ export const consentDataExchange = async (
 
 /**
  * Get all the available exchanges
+ * @param req
+ * @param res
+ * @param next
+ * @return Promise<Response<RestfulResponse>>
  */
 export const getAvailableExchanges = async (
     req: Request,

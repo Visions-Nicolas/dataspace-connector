@@ -6,6 +6,10 @@ import { restfulResponse } from '../../../libs/api/RESTfulResponse';
 
 /**
  * Login a participant into the connector
+ * @param req
+ * @param res
+ * @param next
+ * @return Promise<Response<RestfulResponse>>
  */
 export const login = async (
     req: Request,
