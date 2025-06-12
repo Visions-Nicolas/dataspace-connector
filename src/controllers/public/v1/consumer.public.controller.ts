@@ -7,7 +7,10 @@ import {
     providerExport,
     providerImport,
 } from '../../../libs/third-party/provider';
-import { getCatalogData } from '../../../libs/third-party/catalog';
+import {
+    getCatalogData,
+    getParticipantPublicCatalogData,
+} from '../../../libs/third-party/catalog';
 import { Logger } from '../../../libs/loggers';
 import { DataExchangeStatusEnum } from '../../../utils/enums/dataExchangeStatusEnum';
 import {
@@ -17,7 +20,6 @@ import {
 import { ProviderExportService } from '../../../services/public/v1/provider.public.service';
 import { getEndpoint } from '../../../libs/loaders/configuration';
 import { ExchangeError } from '../../../libs/errors/exchangeError';
-import axios from 'axios';
 
 /**
  * trigger the data exchange between provider and consumer in a bilateral or ecosystem contract
@@ -40,6 +42,10 @@ export const consumerExchange = async (
             providerParams,
             serviceChainId,
         } = req.body;
+
+        Logger.info({
+            message: `Starting exchange for ${contract}`,
+        });
 
         //Create a data Exchange
         let dataExchange: IDataExchange;
@@ -85,32 +91,31 @@ export const consumerExchange = async (
         }
 
         if (serviceChainId && dataExchange.serviceChain.services.length > 0) {
+            Logger.info({
+                message:
+                    'Synchronizing the exchange with infrastructures provider',
+            });
             for (const service of dataExchange.serviceChain.services) {
-                // Get the infrastructure service information
-                const [participantResponse] = await handle(
-                    axios.get(service.participant)
-                );
-
-                // Find the participant endpoint
-                const participantEndpoint =
-                    participantResponse.dataspaceEndpoint;
-
                 // Sync the data exchange with the infrastructure
                 if (
-                    participantEndpoint !== (await getEndpoint()) &&
-                    participantEndpoint !== dataExchange?.consumerEndpoint &&
-                    participantEndpoint !== dataExchange?.providerEndpoint
+                    service.connector !== (await getEndpoint()) &&
+                    service.connector !== dataExchange?.consumerEndpoint &&
+                    service.connector !== dataExchange?.providerEndpoint
                 )
                     await dataExchange.syncWithInfrastructure(
-                        participantEndpoint,
-                        service.service
+                        service.connector
                     );
+                Logger.info({
+                    message: `exchange successfully synchronized with ${service.connector}`,
+                });
 
                 if (service.pre && service.pre.length > 0) {
                     for (const prechain of service.pre) {
                         for (const element of prechain) {
                             const [participantResponse] = await handle(
-                                axios.get(element.participant)
+                                getParticipantPublicCatalogData(
+                                    element.participant
+                                )
                             );
 
                             // Find the participant endpoint
@@ -124,8 +129,7 @@ export const consumerExchange = async (
                             ) {
                                 // Sync the data exchange with the infrastructure
                                 await dataExchange.syncWithInfrastructure(
-                                    participantEndpoint,
-                                    element.service
+                                    participantEndpoint
                                 );
                             }
                         }
@@ -136,13 +140,10 @@ export const consumerExchange = async (
 
         //Trigger provider.ts endpoint exchange
         if (dataExchange.consumerEndpoint) {
-            const updatedDataExchange = await DataExchange.findById(
-                dataExchange._id
-            );
-
-            await ProviderExportService(
-                updatedDataExchange.consumerDataExchange
-            );
+            Logger.info({
+                message: 'Exchange processing on provider side',
+            });
+            await ProviderExportService(dataExchange._id.toString());
         } else {
             if (providerEndpoint === (await getEndpoint())) {
                 Logger.error({
@@ -155,6 +156,9 @@ export const consumerExchange = async (
                     500
                 );
             }
+            Logger.info({
+                message: 'Continuing processing Exchange on provider side',
+            });
             await handle(
                 providerExport(providerEndpoint, dataExchange._id.toString())
             );
@@ -165,6 +169,9 @@ export const consumerExchange = async (
         let message: string;
         let success = false;
         // return code 200 everything is ok
+        Logger.info({
+            message: `Waiting on exchange status change with max timeout of ${process.env.EXCHANGE_TRIGGER_TIMEOUT}sec`,
+        });
         while (dataExchange.status === 'PENDING') {
             if (Date.now() - startTime > timeout) {
                 message = `${
@@ -177,6 +184,10 @@ export const consumerExchange = async (
                 success = true;
             }
         }
+
+        Logger.info({
+            message: `Exchange ${dataExchange._id} status: ${dataExchange.status}`,
+        });
 
         return restfulResponse(res, 200, { success, dataExchange, message });
     } catch (e) {

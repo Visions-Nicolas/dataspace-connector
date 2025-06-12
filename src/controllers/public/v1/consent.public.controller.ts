@@ -14,6 +14,7 @@ import { handle } from '../../../libs/loaders/handler';
 import axios from 'axios';
 import { getEndpoint } from '../../../libs/loaders/configuration';
 import { randomUUID } from 'node:crypto';
+import { getParticipantPublicCatalogData } from '../../../libs/third-party/catalog';
 
 /**
  * export the consent
@@ -83,7 +84,7 @@ export const exportConsent = async (req: Request, res: Response) => {
             for (const service of dataExchange.serviceChain.services) {
                 // Get the infrastructure service information
                 const [participantResponse] = await handle(
-                    axios.get(service.participant)
+                    getParticipantPublicCatalogData(service.participant)
                 );
 
                 // Find the participant endpoint

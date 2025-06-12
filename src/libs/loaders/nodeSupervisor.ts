@@ -18,6 +18,7 @@ import {
 import { Service } from '../../utils/types/contractServiceChain';
 import { handle } from './handler';
 import axios from 'axios';
+import { getParticipantPublicCatalogData } from '../third-party/catalog';
 
 export class SupervisorContainer {
     private static instance: SupervisorContainer;
@@ -296,7 +297,7 @@ export class SupervisorContainer {
             const subArray = [];
             for (const service of chain) {
                 const [participantResponse] = await handle(
-                    axios.get(service.participant)
+                    getParticipantPublicCatalogData(service.participant)
                 );
                 const participantEndpoint =
                     participantResponse.dataspaceEndpoint;
@@ -309,7 +310,8 @@ export class SupervisorContainer {
                                 resolver: participantEndpoint,
                                 configuration: {
                                     params: { ...service.params },
-                                    participantName: participantResponse.name,
+                                    participantName:
+                                        participantResponse.legalName,
                                     participantCatalogId:
                                         participantResponse._id,
                                     participantEndpoint,

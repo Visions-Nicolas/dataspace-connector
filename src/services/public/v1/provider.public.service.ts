@@ -1,6 +1,5 @@
 import { DataExchange, IDataExchange } from '../../../utils/types/dataExchange';
 import { handle } from '../../../libs/loaders/handler';
-import { getContract } from '../../../libs/third-party/contract';
 import { selfDescriptionProcessor } from '../../../utils/selfDescriptionProcessor';
 import {
     pepLeftOperandsVerification,
@@ -15,16 +14,17 @@ import { consumerImport } from '../../../libs/third-party/consumer';
 import { processLeftOperands } from '../../../utils/leftOperandProcessor';
 import { Logger } from '../../../libs/loggers';
 import { triggerInfrastructureFlowService } from './infrastructure.public.service';
+import { getProjectContract } from '../../../libs/third-party/contract';
 
-export const ProviderExportService = async (consumerDataExchange: string) => {
+export const ProviderExportService = async (dataExchangeId: string) => {
     //Get the data exchange
-    const dataExchange = await DataExchange.findOne({
-        consumerDataExchange: consumerDataExchange,
-    });
+    const dataExchange = await DataExchange.findById(dataExchangeId);
 
     try {
         // Get the contract
-        const [contractResp] = await handle(getContract(dataExchange.contract));
+        const [contractResp] = await handle(
+            getProjectContract(dataExchange.contract)
+        );
 
         const serviceOffering = selfDescriptionProcessor(
             dataExchange.resources[0].serviceOffering,

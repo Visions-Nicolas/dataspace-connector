@@ -14,9 +14,9 @@ import {
 import { DataExchangeStatusEnum } from '../../../utils/enums/dataExchangeStatusEnum';
 import { selfDescriptionProcessor } from '../../../utils/selfDescriptionProcessor';
 import { Regexes } from '../../../utils/regexes';
-import { getContract } from '../../../libs/third-party/contract';
 import { getCatalogData } from '../../../libs/third-party/catalog';
 import { consumerImport } from '../../../libs/third-party/consumer';
+import { getProjectContract } from '../../../libs/third-party/contract';
 
 export const providerExportService = async (
     consumerDataExchange: string
@@ -32,7 +32,7 @@ export const providerExportService = async (
         try {
             // Get the contract
             const [contractResp] = await handle(
-                getContract(dataExchange.contract)
+                getProjectContract(dataExchange.contract)
             );
             const serviceOffering = selfDescriptionProcessor(
                 dataExchange.resources[0].serviceOffering,

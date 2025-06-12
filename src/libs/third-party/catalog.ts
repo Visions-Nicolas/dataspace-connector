@@ -10,9 +10,28 @@ import { generateBearerTokenFromSecret } from '../jwt';
 import { handle } from '../loaders/handler';
 import { urlChecker } from '../../utils/urlChecker';
 import { Logger } from '../loggers';
+import { checkParticipantResponse } from '../../utils/responses/catalog.private.response';
+import { ParticipantResponse } from '../../utils/responses/catalog.public.response';
 
-export const getCatalogData = async (endpoint: string, options?: any) => {
+export const getCatalogData = async (
+    endpoint: string,
+    options?: { [key: string]: never }
+) => {
     return axios.get(endpoint, options);
+};
+
+export const getParticipantPublicCatalogData = async (
+    selfDescription: string
+): Promise<ParticipantResponse> => {
+    return axios.get(selfDescription);
+};
+
+export const checkParticipantData = async (
+    url: string,
+    body: Record<string, string>,
+    config: Record<string, any>
+): Promise<checkParticipantResponse> => {
+    return axios.post(url, body, config);
 };
 
 /**
@@ -34,7 +53,7 @@ export const getParticipant = async () => {
             const { token } = await generateBearerTokenFromSecret();
 
             const [checkNeedRegister, checkNeedRegisterError] = await handle(
-                axios.post(
+                checkParticipantData(
                     urlChecker(catalogURI, 'participants/check'),
                     {
                         appKey,

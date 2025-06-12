@@ -11,6 +11,7 @@ import { Credential } from '../../utils/types/credential';
 import { urlChecker } from '../../utils/urlChecker';
 import { handle } from './handler';
 import { config } from '../../config/environment';
+import { checkParticipantData } from '../third-party/catalog';
 
 /**
  * Get the configuration file
@@ -147,7 +148,6 @@ const getBillingUri = async () => {
     else return getConfigFile()?.billingUri;
 };
 
-
 /**
  * Get the modal origins
  * @returns The modal origins
@@ -267,7 +267,7 @@ const registerSelfDescription = async () => {
             const { token } = await generateBearerTokenFromSecret();
 
             const [checkNeedRegister, checkNeedRegisterError] = await handle(
-                axios.post(
+                checkParticipantData(
                     urlChecker(catalogURI, 'participants/check'),
                     {
                         appKey: appKey,

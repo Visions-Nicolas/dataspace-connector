@@ -1,7 +1,14 @@
-export const handle = (promise: any) => {
-    return promise
-        .then((data: any) => [data?.data ?? data, undefined])
-        .catch((error: any) => {
-            throw new Error(error);
-        });
+export const handle = async <T>(
+    promise: Promise<{ data: T } | T>
+): Promise<[T | null, Error | null]> => {
+    try {
+        const res = await promise;
+        const data = (res as any)?.data ?? res;
+        return [data, null];
+    } catch (error: any) {
+        return [
+            null,
+            error instanceof Error ? error : new Error(String(error)),
+        ];
+    }
 };

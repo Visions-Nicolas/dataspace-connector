@@ -14,11 +14,11 @@ import { decryptSignedConsent } from '../../../utils/decryptConsent';
 import { validateConsent } from '../../../libs/third-party/validateConsent';
 import { IDecryptedConsent } from '../../../utils/types/decryptConsent';
 import { DataExchangeStatusEnum } from '../../../utils/enums/dataExchangeStatusEnum';
-import { getContract } from '../../../libs/third-party/contract';
 import { selfDescriptionProcessor } from '../../../utils/selfDescriptionProcessor';
 import { pepVerification } from '../../../utils/pepVerification';
 import { verifyInfrastructureInContract } from '../../../utils/verifyInfrastructureInContract';
 import { getEndpoint } from '../../../libs/loaders/configuration';
+import { getProjectContract } from '../../../libs/third-party/contract';
 
 type CallbackMeta = PipelineMeta & {
     configuration: {
@@ -66,7 +66,9 @@ export const nodeCallbackService = async (props: {
 
     try {
         // Get the contract
-        const [contractResp] = await handle(getContract(dataExchange.contract));
+        const [contractResp] = await handle(
+            getProjectContract(dataExchange.contract)
+        );
 
         let pep = false;
 
@@ -235,7 +237,8 @@ export const nodeCallbackService = async (props: {
                 await dataExchange.completeServiceChain(targetId);
 
                 await dataExchange.updateStatus(
-                    DataExchangeStatusEnum.IMPORT_SUCCESS);
+                    DataExchangeStatusEnum.IMPORT_SUCCESS
+                );
             }
 
             return {
@@ -287,7 +290,9 @@ export const nodePreCallbackService = async (props: {
 
     try {
         // Get the contract
-        const [contractResp] = await handle(getContract(dataExchange.contract));
+        const [contractResp] = await handle(
+            getProjectContract(dataExchange.contract)
+        );
 
         let pep = false;
 

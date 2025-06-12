@@ -9,9 +9,15 @@ import {
     IParams,
 } from '../../../utils/types/dataExchange';
 import { getEndpoint } from '../../../libs/loaders/configuration';
-import { getCatalogData } from '../../../libs/third-party/catalog';
+import {
+    getCatalogData,
+    getParticipantPublicCatalogData,
+} from '../../../libs/third-party/catalog';
 import { ExchangeError } from '../../../libs/errors/exchangeError';
-import { getContract } from '../../../libs/third-party/contract';
+import {
+    getBilateralContract,
+    getProjectContract,
+} from '../../../libs/third-party/contract';
 import { randomUUID } from 'node:crypto';
 
 export const triggerBilateralFlow = async (props: {
@@ -25,10 +31,10 @@ export const triggerBilateralFlow = async (props: {
     const contract = props.contract;
 
     // retrieve contract
-    const [contractResponse] = await handle(getContract(contract));
+    const [contractResponse] = await handle(getBilateralContract(contract));
     // get Provider endpoint
     const [providerResponse] = await handle(
-        axios.get(contractResponse.dataProvider)
+        getParticipantPublicCatalogData(contractResponse.dataProvider)
     );
 
     const [resourceResponse] = await handle(
@@ -72,9 +78,12 @@ export const triggerBilateralFlow = async (props: {
         });
         // Create the data exchange at the provider
         await dataExchange.createDataExchangeToOtherParticipant('provider');
+        Logger.info({
+            message: `Data Exchange synchronize with provider: ${providerResponse?.dataspaceEndpoint}`,
+        });
     } else {
         const [consumerResponse] = await handle(
-            axios.get(contractResponse.dataConsumer)
+            getParticipantPublicCatalogData(contractResponse.dataConsumer)
         );
         dataExchange = await DataExchange.create({
             exchangeIdentifier: `${randomUUID().slice(0, 8)}-${Date.now()}`,
@@ -89,6 +98,9 @@ export const triggerBilateralFlow = async (props: {
         });
         // Create the data exchange at the provider
         await dataExchange.createDataExchangeToOtherParticipant('consumer');
+        Logger.info({
+            message: `Data Exchange synchronize with consumer: ${consumerResponse?.dataspaceEndpoint}`,
+        });
     }
 
     return {
@@ -112,7 +124,21 @@ export const triggerEcosystemFlow = async (props: {
     let serviceChain: IServiceChain;
 
     // retrieve contract
-    const [contractResponse] = await handle(getContract(contract));
+    const [contractResponse, contractError] = await handle(
+        getProjectContract(contract)
+    );
+
+    if (contractError) {
+        Logger.error({
+            message: contractError.message,
+            location: 'triggerEcosystemFlow',
+        });
+        throw new ExchangeError(
+            contractError.message,
+            'triggerEcosystemFlow',
+            524
+        );
+    }
 
     if (serviceChainId) {
         const { resource, purpose, dp } = verifyDataProcessingInContract(
@@ -185,7 +211,7 @@ export const triggerEcosystemFlow = async (props: {
     );
 
     const [consumerSelfDescriptionResponse] = await handle(
-        axios.get(consumerSelfDescription.participant)
+        getParticipantPublicCatalogData(consumerSelfDescription.participant)
     );
 
     //search Provider Endpoint
@@ -198,11 +224,54 @@ export const triggerEcosystemFlow = async (props: {
     );
 
     const [providerSelfDescriptionResponse] = await handle(
-        axios.get(providerSelfDescription.participant)
+        getParticipantPublicCatalogData(providerSelfDescription.participant)
     );
 
     // Verify PII
     await verifyPII(mappedResources, purposeId);
+
+    //add the connector to the service in chain
+    if (serviceChainId && serviceChain && serviceChain.services.length > 0) {
+        for (const [index, service] of serviceChain.services.entries()) {
+            // Get the infrastructure service information
+            const [participantResponse] = await handle(
+                getParticipantPublicCatalogData(service.participant)
+            );
+
+            serviceChain.services[index].connector =
+                participantResponse.dataspaceEndpoint;
+
+            // TODO pre chain connector
+            // if (service.pre && service.pre.length > 0) {
+            //     for (const [prechainIndex, prechain] of service.pre.entries()) {
+            //         for (const [
+            //             elementIndex,
+            //             element,
+            //         ] of prechain.services.entries()) {
+            //             const [participantResponse] = await handle(
+            //                 getParticipantPublicCatalogData(element.participant)
+            //             );
+            //
+            //             // Find the participant endpoint
+            //             const participantEndpoint =
+            //                 participantResponse.dataspaceEndpoint;
+            //
+            //             if (
+            //                 participantEndpoint !==
+            //                     dataExchange.consumerEndpoint &&
+            //                 participantEndpoint !== (await getEndpoint())
+            //             ) {
+            //                 // Sync the data exchange with the infrastructure
+            //                 await dataExchange.syncWithInfrastructure(
+            //                     participantEndpoint,
+            //                     element.service
+            //                 );
+            //             }
+            //         }
+            //     }
+            // }
+        }
+    }
 
     if (
         consumerSelfDescriptionResponse?.dataspaceEndpoint ===
@@ -223,6 +292,9 @@ export const triggerEcosystemFlow = async (props: {
             serviceChain: serviceChain ?? [],
         });
         await dataExchange.createDataExchangeToOtherParticipant('provider');
+        Logger.info({
+            message: `Data Exchange successfully synchronized with provider: ${providerSelfDescriptionResponse?.dataspaceEndpoint}`,
+        });
     } else if (
         providerSelfDescriptionResponse?.dataspaceEndpoint ===
         (await getEndpoint())
@@ -243,6 +315,9 @@ export const triggerEcosystemFlow = async (props: {
 
         // Create the data exchange at the provider
         await dataExchange.createDataExchangeToOtherParticipant('consumer');
+        Logger.info({
+            message: `Data Exchange successfully synchronized with consumer: ${consumerSelfDescriptionResponse?.dataspaceEndpoint}`,
+        });
     }
 
     return {
@@ -333,7 +408,7 @@ const verifyDataProcessingInContract = (
     }
 
     const serviceChain = serviceChains?.find(
-        (element) => element.serviceChainId === id
+        (element) => element.catalogId === id
     );
 
     if (!serviceChain) {

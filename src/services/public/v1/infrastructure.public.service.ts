@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { handle } from '../../../libs/loaders/handler';
 import { Logger } from '../../../libs/loggers';
 import { ContractServiceChain } from '../../../utils/types/contractServiceChain';
@@ -6,6 +5,7 @@ import { IDataExchange } from '../../../utils/types/dataExchange';
 import { NodeConfig } from 'dpcp-library';
 import { SupervisorContainer } from '../../../libs/loaders/nodeSupervisor';
 import { getEndpoint } from '../../../libs/loaders/configuration';
+import { getParticipantPublicCatalogData } from '../../../libs/third-party/catalog';
 
 export const triggerInfrastructureFlowService = async (
     serviceChain: ContractServiceChain,
@@ -17,7 +17,7 @@ export const triggerInfrastructureFlowService = async (
     try {
         // library implementation
         const nodeSupervisor = await SupervisorContainer.getInstance(
-            serviceChain.serviceChainId
+            serviceChain.catalogId
         );
 
         const chainConfig: NodeConfig[] = [];
@@ -25,7 +25,7 @@ export const triggerInfrastructureFlowService = async (
         for (const [index, service] of serviceChain.services.entries()) {
             // Get the infrastructure service information
             const [participantResponse] = await handle(
-                axios.get(service.participant)
+                getParticipantPublicCatalogData(service.participant)
             );
 
             // Find the participant endpoint
@@ -43,7 +43,7 @@ export const triggerInfrastructureFlowService = async (
                     ...(await nodeSupervisor.processingChainConfigConverter({
                         serviceChain: service,
                         participantEndpoint: participantEndpoint,
-                        participantName: participantResponse.name,
+                        participantName: participantResponse.legalName,
                         participantCatalogId: participantResponse._id,
                         dataExchange:
                             dataExchange?.exchangeIdentifier.toString(),

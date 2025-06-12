@@ -5,6 +5,7 @@ import { getEndpoint } from '../../libs/loaders/configuration';
 import { ObjectId } from 'mongodb';
 import { handle } from '../../libs/loaders/handler';
 import { ContractServiceChain } from './contractServiceChain';
+import { postDataExchange } from '../../libs/third-party/dataExchange';
 
 interface IData {
     serviceOffering?: string;
@@ -27,6 +28,7 @@ export interface IService {
     connector: string;
     configuration: string;
     params: any;
+    pre: IServiceChain[];
     completed?: boolean;
 }
 
@@ -61,7 +63,6 @@ interface IDataExchange {
     syncWithParticipant(): Promise<void>;
     updateStatus(status: string, payload?: any): Promise<IDataExchange>;
     syncWithInfrastructure(
-        service: string,
         infrastructureEndpoint?: string
     ): Promise<IDataExchange>;
     completeServiceChain(serviceOffering: string): Promise<void>;
@@ -201,86 +202,36 @@ schema.methods.syncWithParticipant = async function (endpoint: string) {
 /**
  * Sync the data exchange with the infrastructure
  * @param infrastructureEndpoint The infrastructure endpoint, if not provided, the participant endpoint will be requested
- * @param service
  */
 schema.methods.syncWithInfrastructure = async function (
-    infrastructureEndpoint?: string,
-    service?: string
+    infrastructureEndpoint?: string
 ) {
-    if (!this.providerDataExchange) this.providerDataExchange = this._id;
-    if (!this.consumerDataExchange) this.consumerDataExchange = this._id;
-    if (!this.providerEndpoint) this.providerEndpoint = await getEndpoint();
-    if (!this.consumerEndpoint) this.consumerEndpoint = this._id;
+    const [response] = await handle(
+        postDataExchange(urlChecker(infrastructureEndpoint, 'dataexchanges'), {
+            exchangeIdentifier: this.exchangeIdentifier,
+            exchangeKey: this.exchangeKey,
+            providerParams: this.providerParams,
+            serviceChain: this.serviceChain,
+            resources: this.resources,
+            purposeId: this.purposeId,
+            contract: this.contract,
+            consumerEndpoint: this.consumerEndpoint,
+            status: this.status,
+            consumerDataExchange: this.consumerDataExchange,
+            providerDataExchange: this.providerDataExchange,
+            providerEndpoint: this.providerEndpoint,
+        })
+    );
 
-    if (!this.serviceChain.services[0].connector) {
-        this.serviceChain.services[0].connector = this.providerEndpoint;
-    }
-
-    if (
-        !this.serviceChain.services[this.serviceChain.services.length - 1]
-            .connector
-    ) {
-        this.serviceChain.services[
-            this.serviceChain.services.length - 1
-        ].connector = this.consumerEndpoint;
-    }
-
-    if (service && infrastructureEndpoint && this.serviceChain.serviceChainId) {
-        const index = this.serviceChain.services.findIndex(
-            (element: { service: string }) => element.service === service
+    if (response.content._id) {
+        await this.syncWithParticipant(
+            this.consumerEndpoint !== (await getEndpoint())
+                ? this.consumerEndpoint
+                : this.providerEndpoint
         );
-
-        if (index) {
-            this.serviceChain.services[index].connector =
-                infrastructureEndpoint;
-        } else {
-            if (
-                this.serviceChain.services[index].pre &&
-                this.serviceChain.services[index].pre.length > 0
-            ) {
-                for (const preChain of this.serviceChain.services[index].pre) {
-                    const preIndex = preChain.services.findIndex(
-                        (element: { service: string }) =>
-                            element.service === service
-                    );
-
-                    if (preIndex) {
-                        preChain.services[preIndex].connector =
-                            infrastructureEndpoint;
-                    }
-                }
-            }
-        }
-
-        await this.save();
-
-        const [response] = await handle(
-            axios.post(urlChecker(infrastructureEndpoint, 'dataexchanges'), {
-                exchangeIdentifier: this.exchangeIdentifier,
-                exchangeKey: this.exchangeKey,
-                providerParams: this.providerParams,
-                serviceChain: this.serviceChain,
-                resources: this.resources,
-                purposeId: this.purposeId,
-                contract: this.contract,
-                consumerEndpoint: this.consumerEndpoint,
-                status: this.status,
-                consumerDataExchange: this.consumerDataExchange,
-                providerDataExchange: this.providerDataExchange,
-                providerEndpoint: this.providerEndpoint,
-            })
-        );
-
-        if (response.content._id) {
-            await this.syncWithParticipant(
-                this.consumerEndpoint !== (await getEndpoint())
-                    ? this.consumerEndpoint
-                    : this.providerEndpoint
-            );
-            return response.content;
-        } else {
-            throw new Error('Failed to sync with infrastructure');
-        }
+        return response.content;
+    } else {
+        throw new Error('Failed to sync with infrastructure');
     }
 };
 
@@ -294,7 +245,7 @@ schema.methods.updateStatus = async function (status: string, payload?: any) {
     this.payload = payload;
     await this.save();
 
-    if (this.serviceChain.serviceChainId) {
+    if (this.serviceChain.catalogId) {
         for (const service of this.serviceChain.services) {
             if (service.connector !== (await getEndpoint())) {
                 await this.syncWithParticipant(service.connector);
@@ -325,7 +276,7 @@ schema.methods.completeServiceChain = async function (service: string) {
 
         await this.save();
 
-        if (this.serviceChain.serviceChainId) {
+        if (this.serviceChain.catalogId) {
             for (const service of this.serviceChain.services) {
                 if (service.connector !== (await getEndpoint())) {
                     await this.syncWithParticipant(service.connector);
