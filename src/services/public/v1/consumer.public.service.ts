@@ -19,6 +19,7 @@ import {
     getProjectContract,
 } from '../../../libs/third-party/contract';
 import { randomUUID } from 'node:crypto';
+import { CustomError } from '../../../errors/CustomError';
 
 export const triggerBilateralFlow = async (props: {
     contract: string;
@@ -451,6 +452,10 @@ const verifyPII = async (
     }
 
     if (PII) {
-        throw new Error('A resource use PII.');
+        throw new CustomError({
+            message:
+                'One of the resources involved in the requested exchange uses PII but you are trying to access it without using a consent from an individual. Please use the consent-driven flow for Personal Data based exchanges.',
+            statusCode: 400,
+        });
     }
 };
