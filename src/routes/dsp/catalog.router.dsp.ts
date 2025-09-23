@@ -10,10 +10,10 @@ const r: Router = Router();
 const CatalogRequestMessageValidation = [
     body('@context')
         .exists()
-        .isString()
-        .equals('https://w3id.org/dspace/2024/1/context.json'),
-    body('@type').exists().isString().equals('dspace:CatalogRequestMessage'),
-    body('dspace:filter').optional().isArray(),
+        .isArray()
+        .contains('https://w3id.org/dspace/2025/1/context.jsonld'),
+    body('@type').exists().isString().equals('CatalogRequestMessage'),
+    body('filter').optional().isArray(),
 ];
 
 /**
@@ -46,8 +46,8 @@ const CatalogRequestMessageValidation = [
  *               "@type":
  *                 description: The type of the message
  *                 type: string
- *                 example: "dspace:CatalogRequestMessage"
- *               dspace:filter:
+ *                 example: "CatalogRequestMessage"
+ *               filter:
  *                 description: The filter for the catalog request
  *                 type: object
  *     responses:
@@ -115,5 +115,14 @@ r.post(
  *                   type: string
  */
 r.get('/catalog/datasets/:id', getDataset);
+
+r.post(
+    '/tck/catalog/request',
+    CatalogRequestMessageValidation,
+    validate,
+    handleCatalogRequest
+);
+
+r.get('/tck/catalog/datasets/:id', getDataset);
 
 export default r;

@@ -42,12 +42,12 @@ describe('Catalog API tests', () => {
             expect(response.status).to.equal(200);
             expect(response.body).has.property(
                 '@context',
-                'https://w3id.org/dspace/2024/1/context.json'
+                ['https://w3id.org/dspace/2025/1/context.jsonld']
             );
             expect(response.body).has.property('protocolVersions');
             expect(response.body['protocolVersions'][0]).has.property(
                 'version',
-                '2024-1'
+                '2025-1'
             );
             expect(response.body['protocolVersions'][0]).has.property(
                 'path',

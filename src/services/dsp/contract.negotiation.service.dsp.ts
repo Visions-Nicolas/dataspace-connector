@@ -25,17 +25,14 @@ class ContractNegotiationService {
      * Get the mapped property name in the database
      */
     public getMappedIDSToDBProperty(
-        idsProperty:
-            | 'dspace:providerPid'
-            | 'dspace:consumerPid'
-            | 'dspace:negotiationState'
+        idsProperty: 'providerPid' | 'consumerPid' | 'negotiationState'
     ) {
         switch (idsProperty) {
-            case 'dspace:providerPid':
+            case 'providerPid':
                 return 'providerPid';
-            case 'dspace:consumerPid':
+            case 'consumerPid':
                 return 'consumerPid';
-            case 'dspace:negotiationState':
+            case 'negotiationState':
                 return 'state';
             default:
                 throw new Error('Property not found');
@@ -66,6 +63,12 @@ class ContractNegotiationService {
         return cn;
     }
 
+    public async getContractNegotiationFromPid(pid: string) {
+        return ContractNegotiationModel.findOne({
+            $or: [{ providerPid: pid }, { consumerPid: pid }],
+        });
+    }
+
     public async getContractNegotiationFromConsumerPidAnProviderPid({
         consumerPid,
         providerPid,
@@ -85,15 +88,21 @@ class ContractNegotiationService {
         consumerPid,
         providerPid,
         state,
+        callbackAddress,
+        target,
     }: {
         providerPid?: string;
         consumerPid?: string;
         state: NegotiationState;
+        callbackAddress?: string;
+        target?: string;
     }) {
         const cn = new ContractNegotiationModel({
             providerPid: providerPid ?? this.generateContractNegotiationPid(),
             consumerPid: consumerPid ?? this.generateContractNegotiationPid(),
             state,
+            callbackAddress,
+            target,
         });
 
         await cn.save();

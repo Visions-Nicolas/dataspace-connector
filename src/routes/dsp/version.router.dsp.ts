@@ -43,11 +43,12 @@ const r: Router = Router();
  */
 r.get('/.well-known/dspace-version', async (req: Request, res: Response) => {
     return res.status(200).json({
-        '@context': 'https://w3id.org/dspace/2024/1/context.json',
+        '@context': ['https://w3id.org/dspace/2025/1/context.json'],
         protocolVersions: [
             {
-                version: '2024-1',
+                version: '2025-1',
                 path: await getEndpoint(),
+                binding: '',
             },
         ],
     });

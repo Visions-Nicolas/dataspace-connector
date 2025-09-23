@@ -40,33 +40,33 @@ describe('DSP Transfer Process API tests', () => {
                     .post('/transfers/request')
                     .send({
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
-                        '@type': 'dspace:TransferRequestMessage',
-                        'dspace:consumerPid': consumerPid,
-                        'dspace:agreementId': 'agreement-123',
-                        'dct:format': 'application/json',
-                        'dspace:callbackAddress': 'https://callback.com',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
+                        '@type': 'TransferRequestMessage',
+                        'consumerPid': consumerPid,
+                        'agreementId': 'agreement-123',
+                        'format': 'application/json',
+                        'callbackAddress': 'https://callback.com',
                     });
 
                 expect(response.status).to.equal(201);
                 expect(response.body).to.have.property(
                     '@context',
-                    'https://w3id.org/dspace/2024/1/context.json'
+                    ['https://w3id.org/dspace/2025/1/context.jsonld']
                 );
                 expect(response.body).to.have.property(
                     '@type',
-                    'dspace:TransferProcess'
+                    'TransferProcess'
                 );
                 expect(response.body).to.have.property(
-                    'dspace:consumerPid',
+                    'consumerPid',
                     consumerPid
                 );
                 expect(response.body).to.have.property(
-                    'dspace:state',
-                    'dspace:REQUESTED'
+                    'state',
+                    'REQUESTED'
                 );
 
-                providerPid = response.body['dspace:providerPid'];
+                providerPid = response.body['providerPid'];
             });
 
             it('Should return 400 for invalid transfer process request format', async () => {
@@ -75,8 +75,8 @@ describe('DSP Transfer Process API tests', () => {
                     .send({
                         // Missing required fields
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
-                        '@type': 'dspace:TransferRequestMessage',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
+                        '@type': 'TransferRequestMessage',
                     });
                 expect(response.status).to.equal(400);
             });
@@ -91,23 +91,23 @@ describe('DSP Transfer Process API tests', () => {
                 expect(response.status).to.equal(200);
                 expect(response.body).to.have.property(
                     '@context',
-                    'https://w3id.org/dspace/2024/1/context.json'
+                    ['https://w3id.org/dspace/2025/1/context.jsonld']
                 );
                 expect(response.body).to.have.property(
                     '@type',
-                    'dspace:TransferProcess'
+                    'TransferProcess'
                 );
                 expect(response.body).to.have.property(
-                    'dspace:providerPid',
+                    'providerPid',
                     providerPid
                 );
                 expect(response.body).to.have.property(
-                    'dspace:consumerPid',
+                    'consumerPid',
                     consumerPid
                 );
                 expect(response.body).to.have.property(
-                    'dspace:state',
-                    'dspace:REQUESTED'
+                    'state',
+                    'REQUESTED'
                 );
             });
 
@@ -125,21 +125,21 @@ describe('DSP Transfer Process API tests', () => {
                     .post(`/transfers/${providerPid}/start`)
                     .send({
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
-                        '@type': 'dspace:TransferStartMessage',
-                        'dspace:providerPid': providerPid,
-                        'dspace:consumerPid': consumerPid,
-                        'dspace:dataAddress': {
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
+                        '@type': 'TransferStartMessage',
+                        'providerPid': providerPid,
+                        'consumerPid': consumerPid,
+                        'dataAddress': {
                             '@type': 'DataAddress',
-                            'dspace:endpointType': 'HTTP',
-                            'dspace:endpoint': 'https://example.com/data',
+                            'endpointType': 'HTTP',
+                            'endpoint': 'https://example.com/data',
                         },
                     });
 
                 expect(response.status).to.equal(200);
                 expect(response.body).to.have.property(
-                    'dspace:state',
-                    'dspace:STARTED'
+                    'state',
+                    'STARTED'
                 );
             });
 
@@ -149,8 +149,8 @@ describe('DSP Transfer Process API tests', () => {
                     .send({
                         // Missing required fields
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
-                        '@type': 'dspace:TransferRequestMessage',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
+                        '@type': 'TransferRequestMessage',
                     });
                 expect(response.status).to.equal(400);
             });
@@ -162,16 +162,16 @@ describe('DSP Transfer Process API tests', () => {
                     .post(`/transfers/${providerPid}/completion`)
                     .send({
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
-                        '@type': 'dspace:TransferCompletionMessage',
-                        'dspace:providerPid': providerPid,
-                        'dspace:consumerPid': consumerPid,
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
+                        '@type': 'TransferCompletionMessage',
+                        'providerPid': providerPid,
+                        'consumerPid': consumerPid,
                     });
 
                 expect(response.status).to.equal(200);
                 expect(response.body).to.have.property(
-                    'dspace:state',
-                    'dspace:COMPLETED'
+                    'state',
+                    'COMPLETED'
                 );
             });
 
@@ -181,8 +181,8 @@ describe('DSP Transfer Process API tests', () => {
                     .send({
                         // Missing required fields
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
-                        '@type': 'dspace:TransferRequestMessage',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
+                        '@type': 'TransferRequestMessage',
                     });
                 expect(response.status).to.equal(400);
             });
@@ -194,18 +194,18 @@ describe('DSP Transfer Process API tests', () => {
                     .post(`/transfers/${providerPid}/suspension`)
                     .send({
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
-                        '@type': 'dspace:TransferSuspensionMessage',
-                        'dspace:providerPid': providerPid,
-                        'dspace:consumerPid': consumerPid,
-                        'dspace:code': 'SUSPENSION_CODE',
-                        'dspace:reason': ['REASON_1'],
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
+                        '@type': 'TransferSuspensionMessage',
+                        'providerPid': providerPid,
+                        'consumerPid': consumerPid,
+                        'code': 'SUSPENSION_CODE',
+                        'reason': ['REASON_1'],
                     });
 
                 expect(response.status).to.equal(200);
                 expect(response.body).to.have.property(
-                    'dspace:state',
-                    'dspace:SUSPENDED'
+                    'state',
+                    'SUSPENDED'
                 );
             });
 
@@ -215,8 +215,8 @@ describe('DSP Transfer Process API tests', () => {
                     .send({
                         // Missing required fields
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
-                        '@type': 'dspace:TransferRequestMessage',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
+                        '@type': 'TransferRequestMessage',
                     });
                 expect(response.status).to.equal(400);
             });
@@ -228,8 +228,8 @@ describe('DSP Transfer Process API tests', () => {
                     .post(`/transfers/${providerPid}/termination`)
                     .send({
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
-                        '@type': 'dspace:TransferTerminationMessage',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
+                        '@type': 'TransferTerminationMessage',
                         'dspace:providerPid': providerPid,
                         'dspace:consumerPid': consumerPid,
                         'dspace:code': 'TERMINATION_CODE',
@@ -249,7 +249,7 @@ describe('DSP Transfer Process API tests', () => {
                     .send({
                         // Missing required fields
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
                         '@type': 'dspace:TransferRequestMessage',
                     });
                 expect(response.status).to.equal(400);
@@ -262,7 +262,7 @@ describe('DSP Transfer Process API tests', () => {
                     .post(`/callback/transfers/${consumerPid}/start`)
                     .send({
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
                         '@type': 'dspace:TransferStartMessage',
                         'dspace:providerPid': providerPid,
                         'dspace:consumerPid': consumerPid,
@@ -286,7 +286,7 @@ describe('DSP Transfer Process API tests', () => {
                     .send({
                         // Missing required fields
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
                         '@type': 'dspace:TransferRequestMessage',
                     });
                 expect(response.status).to.equal(400);
@@ -299,7 +299,7 @@ describe('DSP Transfer Process API tests', () => {
                     .post(`/callback/transfers/${consumerPid}/completion`)
                     .send({
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
                         '@type': 'dspace:TransferCompletionMessage',
                         'dspace:providerPid': providerPid,
                         'dspace:consumerPid': consumerPid,
@@ -318,7 +318,7 @@ describe('DSP Transfer Process API tests', () => {
                     .send({
                         // Missing required fields
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
                         '@type': 'dspace:TransferRequestMessage',
                     });
                 expect(response.status).to.equal(400);
@@ -331,7 +331,7 @@ describe('DSP Transfer Process API tests', () => {
                     .post(`/callback/transfers/${consumerPid}/suspension`)
                     .send({
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
                         '@type': 'dspace:TransferSuspensionMessage',
                         'dspace:providerPid': providerPid,
                         'dspace:consumerPid': consumerPid,
@@ -352,7 +352,7 @@ describe('DSP Transfer Process API tests', () => {
                     .send({
                         // Missing required fields
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
                         '@type': 'dspace:TransferRequestMessage',
                     });
                 expect(response.status).to.equal(400);
@@ -365,7 +365,7 @@ describe('DSP Transfer Process API tests', () => {
                     .post(`/callback/transfers/${consumerPid}/termination`)
                     .send({
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
                         '@type': 'dspace:TransferTerminationMessage',
                         'dspace:providerPid': providerPid,
                         'dspace:consumerPid': consumerPid,
@@ -386,7 +386,7 @@ describe('DSP Transfer Process API tests', () => {
                     .send({
                         // Missing required fields
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
                         '@type': 'dspace:TransferRequestMessage',
                     });
                 expect(response.status).to.equal(400);

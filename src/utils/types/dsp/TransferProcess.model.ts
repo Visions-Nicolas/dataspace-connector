@@ -11,6 +11,15 @@ const TransferProcessSchema = new Schema(
         state: {
             type: String,
         },
+        callbackAddress: {
+            type: String,
+        },
+        format: {
+            type: String,
+        },
+        agreementId: {
+            type: String,
+        },
     },
     { timestamps: true }
 );

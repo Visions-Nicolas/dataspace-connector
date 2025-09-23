@@ -11,6 +11,12 @@ const ContractNegotiationSchema = new Schema(
         state: {
             type: String,
         },
+        callbackAddress: {
+            type: String,
+        },
+        target: {
+            type: String,
+        },
     },
     { timestamps: true }
 );

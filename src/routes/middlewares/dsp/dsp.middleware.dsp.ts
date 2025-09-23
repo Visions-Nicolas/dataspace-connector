@@ -48,7 +48,7 @@ export const validateContractNegotiationRequestFormat = (
     if (payload.offer && !payload.offer['@id']) errors++;
 
     // Request is coming from consumer so consumer should have set the cn id
-    if (!payload['dspace:consumerPid']) errors++;
+    if (!payload['consumerPid']) errors++;
 
     // Check if consumer callback address is present
     if (!payload.callbackAddress) errors++;
@@ -76,10 +76,9 @@ export const validateContractAgreementVerificationFormat = (
     let errors = 0;
 
     if (!validateBaseMessageInfo(payload)) errors++;
-    if (payload['@id'] !== 'dspace:ContractAgreementVerificationMessage')
-        errors++;
-    if (!payload['dspace:providerPid']) errors++;
-    if (!payload['dspace:consumerPid']) errors++;
+    if (payload['@id'] !== 'ContractAgreementVerificationMessage') errors++;
+    if (!payload['providerPid']) errors++;
+    if (!payload['consumerPid']) errors++;
 
     if (!payload.agreement) errors++;
 
@@ -106,10 +105,10 @@ export const validateContractNegotiationEventFormat = (
     let errors = 0;
 
     if (!validateBaseMessageInfo(payload)) errors++;
-    if (payload['@id'] !== 'dspace:ContractNegotiationEventMessage') errors++;
-    if (!payload['dspace:providerPid']) errors++;
-    if (!payload['dspace:consumerPid']) errors++;
-    if (!payload['dspace:eventType']) errors++;
+    if (payload['@id'] !== 'ContractNegotiationEventMessage') errors++;
+    if (!payload['providerPid']) errors++;
+    if (!payload['consumerPid']) errors++;
+    if (!payload['eventType']) errors++;
 
     if (errors > 0)
         return res.status(400).json({
@@ -129,6 +128,9 @@ export const verifyProviderPid = async (
     next: NextFunction
 ) => {
     const { providerPid } = req.params;
+
+    console.log(req.body)
+    console.log("PROVIDERPID", !providerPid)
     if (!providerPid) {
         return res.status(400).json({
             message: 'providerPid is missing',
@@ -136,10 +138,8 @@ export const verifyProviderPid = async (
     }
 
     const cn =
-        await ContractNegotiationServiceDsp.getContractNegotiationFromProviderPid(
-            {
-                providerPid,
-            }
+        await ContractNegotiationServiceDsp.getContractNegotiationFromPid(
+            providerPid
         );
 
     if (!cn) {
@@ -147,6 +147,8 @@ export const verifyProviderPid = async (
             .status(404)
             .json({ message: 'Contract negotiation not found' });
     }
+
+    console.log("NEXT")
 
     next();
 };
@@ -166,10 +168,9 @@ export const verifyProviderTpPid = async (
         });
     }
 
-    const cn =
-        await transferProcessServiceDsp.getTransferProcessFromProviderPid({
-            providerPid,
-        });
+    const cn = await transferProcessServiceDsp.getTransferProcessFromPid(
+        providerPid
+    );
 
     if (!cn) {
         return res

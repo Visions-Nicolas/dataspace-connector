@@ -1,4 +1,4 @@
-/// These interfaces are based on the IDS Policy Schema https://international-data-spaces-association.github.io/ids-specification/2024-1/negotiation/message/schema/contract-schema.json#/definitions/Agreement
+/// These interfaces are based on the IDS Policy Schema https://international-data-spaces-association.github.io/ids-specification/2025-1/negotiation/message/schema/contract-schema.json#/definitions/Agreement
 
 export enum Action {
     'odrl:delete',
@@ -156,7 +156,7 @@ export interface IAgreement {
     '@type': 'odrl:Agreement';
     '@id': string;
     'odrl:target': string;
-    'dspace:timestamp': string;
+    'timestamp': string;
     'odrl:permission': IPermission;
     'odrl:prohibition': IProhibition;
 }

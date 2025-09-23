@@ -34,7 +34,7 @@ describe('DSP Contract Negotiation Service tests', () => {
             expect(cn).to.have.property('providerPid');
             expect(cn.providerPid).to.match(/^urn:uuid:/);
             expect(cn.consumerPid).to.equal(consumerPid);
-            expect(cn.state).to.equal('dspace:REQUESTED');
+            expect(cn.state).to.equal('REQUESTED');
             providerPid = cn.providerPid;
         });
 
@@ -135,19 +135,19 @@ describe('DSP Contract Negotiation Service tests', () => {
         it('Should correctly map IDS properties to DB properties', () => {
             expect(
                 ContractNegotiationServiceDsp.getMappedIDSToDBProperty(
-                    'dspace:providerPid'
+                    'providerPid'
                 )
             ).to.equal('providerPid');
 
             expect(
                 ContractNegotiationServiceDsp.getMappedIDSToDBProperty(
-                    'dspace:consumerPid'
+                    'consumerPid'
                 )
             ).to.equal('consumerPid');
 
             expect(
                 ContractNegotiationServiceDsp.getMappedIDSToDBProperty(
-                    'dspace:negotiationState'
+                    'negotiationState'
                 )
             ).to.equal('state');
         });
@@ -156,7 +156,7 @@ describe('DSP Contract Negotiation Service tests', () => {
             expect(() => {
                 // @ts-expect-error Testing invalid input
                 ContractNegotiationServiceDsp.getMappedIDSToDBProperty(
-                    'dspace:invalid-property'
+                    'invalid-property'
                 );
             }).to.throw('Property not found');
         });
@@ -179,15 +179,15 @@ describe('DSP Contract Negotiation Service tests', () => {
 
             expect(message).to.have.property(
                 '@type',
-                'dspace:ContractNegotiation'
+                'ContractNegotiation'
             );
             expect(message).to.have.property(
-                'dspace:providerPid',
+                'providerPid',
                 'urn:uuid:test'
             );
-            expect(message).to.have.property('dspace:consumerPid', consumerPid);
+            expect(message).to.have.property('consumerPid', consumerPid);
             expect(message).to.have.property(
-                'dspace:state',
+                'state',
                 NegotiationState.REQUESTED
             );
             expect(message).to.have.property('@context');
@@ -199,9 +199,9 @@ describe('DSP Contract Negotiation Service tests', () => {
                     new ObjectId().toString()
                 );
 
-            expect(message).to.have.property('dspace:providerPid', undefined);
-            expect(message).to.have.property('dspace:consumerPid', undefined);
-            expect(message).to.have.property('dspace:state', undefined);
+            expect(message).to.have.property('providerPid', undefined);
+            expect(message).to.have.property('consumerPid', undefined);
+            expect(message).to.have.property('state', undefined);
         });
     });
 });

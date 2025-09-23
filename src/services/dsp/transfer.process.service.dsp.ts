@@ -24,17 +24,14 @@ class TransferProcessService {
      * Get the mapped property name in the database
      */
     public getMappedIDSToDBProperty(
-        idsProperty:
-            | 'dspace:providerPid'
-            | 'dspace:consumerPid'
-            | 'dspace:negotiationState'
+        idsProperty: 'providerPid' | 'consumerPid' | 'negotiationState'
     ) {
         switch (idsProperty) {
-            case 'dspace:providerPid':
+            case 'providerPid':
                 return 'providerPid';
-            case 'dspace:consumerPid':
+            case 'consumerPid':
                 return 'consumerPid';
-            case 'dspace:negotiationState':
+            case 'negotiationState':
                 return 'state';
             default:
                 throw new Error('Property not found');
@@ -65,17 +62,34 @@ class TransferProcessService {
         return cn;
     }
 
+    public async getTransferProcessFromPid(pid: string) {
+        return TransferProcessModel.findOne({
+            $or: [{ providerPid: pid }, { consumerPid: pid }],
+        });
+    }
+
     public async createTransferProcess({
         consumerPid,
+        providerPid,
         state,
+        format,
+        callbackAddress,
+        agreementId,
     }: {
-        consumerPid: string;
+        consumerPid?: string;
+        providerPid?: string;
         state: TransferState;
+        format: string;
+        callbackAddress?: string;
+        agreementId?: string;
     }) {
         const cn = new TransferProcessModel({
-            providerPid: this.generateTransferProcessPid(),
-            consumerPid,
+            providerPid: providerPid ?? this.generateTransferProcessPid(),
+            consumerPid: consumerPid ?? this.generateTransferProcessPid(),
             state,
+            format,
+            callbackAddress,
+            agreementId,
         });
 
         await cn.save();

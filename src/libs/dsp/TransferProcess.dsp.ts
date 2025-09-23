@@ -1,20 +1,20 @@
 import { TransferState } from '../../utils/types/dsp/message-types.interface.dsp';
 
 export class TransferProcess {
-    '@context': 'https://w3id.org/dspace/2024/1/context.json';
-    '@type': 'dspace:TransferProcess';
-    'dspace:providerPid': string;
-    'dspace:consumerPid': string;
-    'dspace:state': TransferState;
+    '@context': ['https://w3id.org/dspace/2025/1/context.jsonld'];
+    '@type': 'TransferProcess';
+    'providerPid': string;
+    'consumerPid': string;
+    'state': TransferState;
 
     constructor(transferProcessDocument?: any) {
-        this['@context'] = 'https://w3id.org/dspace/2024/1/context.json';
-        this['@type'] = 'dspace:TransferProcess';
+        this['@context'] = ['https://w3id.org/dspace/2025/1/context.jsonld'];
+        this['@type'] = 'TransferProcess';
 
         if (transferProcessDocument) {
-            this['dspace:providerPid'] = transferProcessDocument.providerPid;
-            this['dspace:consumerPid'] = transferProcessDocument.consumerPid;
-            this['dspace:state'] = transferProcessDocument.state;
+            this['providerPid'] = transferProcessDocument.providerPid;
+            this['consumerPid'] = transferProcessDocument.consumerPid;
+            this['state'] = transferProcessDocument.state;
         }
     }
 
@@ -22,9 +22,9 @@ export class TransferProcess {
         return {
             '@context': this['@context'],
             '@type': this['@type'],
-            'dspace:providerPid': this['dspace:providerPid'],
-            'dspace:consumerPid': this['dspace:consumerPid'],
-            'dspace:state': this['dspace:state'],
+            providerPid: this['providerPid'],
+            consumerPid: this['consumerPid'],
+            state: this['state'],
         };
     }
 }

@@ -33,7 +33,7 @@ describe('DSP Transfer Process Service tests', () => {
             expect(tp).to.have.property('providerPid');
             expect(tp.providerPid).to.match(/^urn:uuid:/);
             expect(tp.consumerPid).to.equal(consumerPid);
-            expect(tp.state).to.equal('dspace:REQUESTED');
+            expect(tp.state).to.equal('REQUESTED');
             providerPid = tp.providerPid;
         });
 
@@ -46,11 +46,7 @@ describe('DSP Transfer Process Service tests', () => {
                 });
 
             const tp =
-                await TransferProcessServiceDsp.getTransferProcessFromProviderPid(
-                    {
-                        providerPid: created.providerPid,
-                    }
-                );
+                await TransferProcessServiceDsp.getTransferProcessFromPid(created.providerPid);
 
             expect(tp).to.have.property('id');
             expect(tp.providerPid).to.equal(created.providerPid);
@@ -59,11 +55,7 @@ describe('DSP Transfer Process Service tests', () => {
 
         it('Should return null when retrieving non-existent providerPid', async () => {
             const tp =
-                await TransferProcessServiceDsp.getTransferProcessFromProviderPid(
-                    {
-                        providerPid: 'non-existent',
-                    }
-                );
+                await TransferProcessServiceDsp.getTransferProcessFromPid('non-existent');
 
             expect(tp).to.be.null;
         });
@@ -102,19 +94,19 @@ describe('DSP Transfer Process Service tests', () => {
         it('Should correctly map IDS properties to DB properties', () => {
             expect(
                 TransferProcessServiceDsp.getMappedIDSToDBProperty(
-                    'dspace:providerPid'
+                    'providerPid'
                 )
             ).to.equal('providerPid');
 
             expect(
                 TransferProcessServiceDsp.getMappedIDSToDBProperty(
-                    'dspace:consumerPid'
+                    'consumerPid'
                 )
             ).to.equal('consumerPid');
 
             expect(
                 TransferProcessServiceDsp.getMappedIDSToDBProperty(
-                    'dspace:negotiationState'
+                    'negotiationState'
                 )
             ).to.equal('state');
         });
@@ -122,7 +114,7 @@ describe('DSP Transfer Process Service tests', () => {
         it('Should throw error for invalid property mapping', () => {
             expect(() => {
                 TransferProcessServiceDsp.getMappedIDSToDBProperty(
-                    'dspace:invalid-property' as any
+                    'invalid-property' as any
                 );
             }).to.throw('Property not found');
         });
@@ -143,14 +135,14 @@ describe('DSP Transfer Process Service tests', () => {
                     tp._id.toString()
                 );
 
-            expect(message).to.have.property('@type', 'dspace:TransferProcess');
+            expect(message).to.have.property('@type', 'TransferProcess');
             expect(message).to.have.property(
-                'dspace:providerPid',
+                'providerPid',
                 'urn:uuid:test'
             );
-            expect(message).to.have.property('dspace:consumerPid', consumerPid);
+            expect(message).to.have.property('consumerPid', consumerPid);
             expect(message).to.have.property(
-                'dspace:state',
+                'state',
                 TransferState.REQUESTED
             );
             expect(message).to.have.property('@context');
@@ -162,10 +154,10 @@ describe('DSP Transfer Process Service tests', () => {
                     new ObjectId().toString()
                 );
 
-            expect(message).to.have.property('@type', 'dspace:TransferProcess');
-            expect(message).to.have.property('dspace:providerPid', undefined);
-            expect(message).to.have.property('dspace:consumerPid', undefined);
-            expect(message).to.have.property('dspace:state', undefined);
+            expect(message).to.have.property('@type', 'TransferProcess');
+            expect(message).to.have.property('providerPid', undefined);
+            expect(message).to.have.property('consumerPid', undefined);
+            expect(message).to.have.property('state', undefined);
         });
     });
 });

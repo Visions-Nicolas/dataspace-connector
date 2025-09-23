@@ -66,8 +66,8 @@ describe('Catalog API tests', () => {
                     request(serverInstance.app).post('/catalog/request').send({
                         // Missing required fields
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
-                        '@type': 'dspace:CatalogRequestMessage',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
+                        '@type': 'CatalogRequestMessage',
                     })
                 );
 
@@ -84,8 +84,8 @@ describe('Catalog API tests', () => {
                     .send({
                         // Missing required fields
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
-                        '@type': 'dspace:CatalogInvalidMessage',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
+                        '@type': 'CatalogInvalidMessage',
                     });
                 expect(response.status).to.equal(400);
             });

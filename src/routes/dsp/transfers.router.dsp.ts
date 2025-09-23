@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import {
     getTransferProcess,
+    handleAskStartTransfer,
     handleTransferProcessCompleted,
     handleTransferProcessRequest,
-    handleTransferProcessStarted,
+    handleTransferProcessRequestTCK,
+    handleTransferProcessStarted, handleTransferProcessStartedTCK,
     handleTransferProcessSuspension,
     handleTransferProcessTermination,
 } from '../../controllers/dsp/transfers.controller.dsp';
@@ -18,68 +20,59 @@ const r: Router = Router();
 const transferRequestMessageValidation = [
     body('@context')
         .exists()
-        .isString()
-        .equals('https://w3id.org/dspace/2024/1/context.json'),
-    body('@type').exists().isString().equals('dspace:TransferRequestMessage'),
-    body('dspace:agreementId').exists().isString(),
-    body('dspace:consumerPid').exists().isString(),
-    body('dct:format').exists().isString(),
-    body('dspace:dataAddress').optional(),
-    body('dspace:callbackAddress').exists().isString(),
+        .isArray()
+        .contains('https://w3id.org/dspace/2025/1/context.jsonld'),
+    body('@type').exists().isString().equals('TransferRequestMessage'),
+    body('agreementId').exists().isString(),
+    body('consumerPid').exists().isString(),
+    body('format').exists().isString(),
+    body('dataAddress').optional(),
+    body('callbackAddress').exists().isString(),
 ];
 
 const transferStartMessageValidation = [
     body('@context')
         .exists()
-        .isString()
-        .equals('https://w3id.org/dspace/2024/1/context.json'),
-    body('@type').exists().isString().equals('dspace:TransferStartMessage'),
-    body('dspace:providerPid').exists().isString(),
-    body('dspace:consumerPid').exists().isString(),
-    body('dspace:dataAddress').optional(),
+        .isArray()
+        .contains('https://w3id.org/dspace/2025/1/context.jsonld'),
+    body('@type').exists().isString().equals('TransferStartMessage'),
+    body('providerPid').exists().isString(),
+    body('consumerPid').exists().isString(),
+    body('dataAddress').optional(),
 ];
 
 const transferCompletionMessageValidation = [
     body('@context')
         .exists()
-        .isString()
-        .equals('https://w3id.org/dspace/2024/1/context.json'),
-    body('@type')
-        .exists()
-        .isString()
-        .equals('dspace:TransferCompletionMessage'),
-    body('dspace:providerPid').exists().isString(),
-    body('dspace:consumerPid').exists().isString(),
+        .isArray()
+        .contains('https://w3id.org/dspace/2025/1/context.jsonld'),
+    body('@type').exists().isString().equals('TransferCompletionMessage'),
+    body('providerPid').exists().isString(),
+    body('consumerPid').exists().isString(),
 ];
 
 const transferTerminationMessageValidation = [
     body('@context')
         .exists()
-        .isString()
-        .equals('https://w3id.org/dspace/2024/1/context.json'),
-    body('@type')
-        .exists()
-        .isString()
-        .equals('dspace:TransferTerminationMessage'),
-    body('dspace:providerPid').exists().isString(),
-    body('dspace:consumerPid').exists().isString(),
-    body('dspace:code').optional().isString(),
-    body('dspace:reason').optional().isArray(),
+        .isArray()
+        .contains('https://w3id.org/dspace/2025/1/context.jsonld'),
+    body('@type').exists().isString().equals('TransferTerminationMessage'),
+    body('providerPid').exists().isString(),
+    body('consumerPid').exists().isString(),
+    body('code').optional().isString(),
+    body('reason').optional().isArray(),
 ];
 
 const transferSuspensionMessageValidation = [
     body('@context')
         .exists()
-        .isString()
-        .equals('https://w3id.org/dspace/2024/1/context.json'),
-    body('@type')
-        .exists()
-        .isString()
-        .equals('dspace:TransferSuspensionMessage'),
-    body('dspace:providerPid').exists().isString(),
-    body('dspace:consumerPid').exists().isString(),
-    body('dspace:code').optional().isString(),
-    body('dspace:reason').optional().isArray(),
+        .isArray()
+        .contains('https://w3id.org/dspace/2025/1/context.jsonld'),
+    body('@type').exists().isString().equals('TransferSuspensionMessage'),
+    body('providerPid').exists().isString(),
+    body('consumerPid').exists().isString(),
+    body('code').optional().isString(),
+    body('reason').optional().isArray(),
 ];
 
 /**
@@ -119,13 +112,13 @@ const transferSuspensionMessageValidation = [
  *                 "@type":
  *                   description: The type of the message.
  *                   type: string
- *                 "dspace:providerPid":
+ *                 "providerPid":
  *                   description: The PID of the provider.
  *                   type: string
- *                 "dspace:consumerPid":
+ *                 "consumerPid":
  *                   description: The PID of the consumer.
  *                   type: string
- *                 "dspace:state":
+ *                 "state":
  *                   description: The state of the transfer process.
  *                   type: string
  *       '404':
@@ -167,29 +160,29 @@ r.get(
  *               '@type':
  *                 description: The type of the message.
  *                 type: string
- *               'dspace:consumerPid':
+ *               'consumerPid':
  *                 description: The PID of the consumer.
  *                 type: string
- *               'dspace:agreementId':
+ *               'agreementId':
  *                 description: The ID of the agreement.
  *                 type: string
- *               'dct:format':
+ *               'format':
  *                 description: The format of the data.
  *                 type: string
- *               'dspace:dataAddress':
+ *               'dataAddress':
  *                 description: The data address.
  *                 type: object
  *                 properties:
  *                   '@type':
  *                     description: The type of the data address.
  *                     type: string
- *                   'dspace:endpointType':
+ *                   'endpointType':
  *                     description: The type of the endpoint.
  *                     type: string
- *                   'dspace:endpoint':
+ *                   'endpoint':
  *                     description: The endpoint.
  *                     type: string
- *                   'dspace:endpointProperties':
+ *                   'endpointProperties':
  *                     description: The endpoint properties.
  *                     type: array
  *                     items:
@@ -198,13 +191,13 @@ r.get(
  *                         '@type':
  *                           description: The type of the endpoint property.
  *                           type: string
- *                         'dspace:name':
+ *                         'name':
  *                           description: The name of the endpoint property.
  *                           type: string
- *                         'dspace:value':
+ *                         'value':
  *                           description: The value of the endpoint property.
  *                           type: string
- *               'dspace:callbackAddress':
+ *               'callbackAddress':
  *                 description: The callback address.
  *                 type: string
  *     responses:
@@ -221,13 +214,13 @@ r.get(
  *                 '@type':
  *                   description: The type of the message.
  *                   type: string
- *                 'dspace:providerPid':
+ *                 'providerPid':
  *                   description: The PID of the provider.
  *                   type: string
- *                 'dspace:consumerPid':
+ *                 'consumerPid':
  *                   description: The PID of the consumer.
  *                   type: string
- *                 'dspace:state':
+ *                 'state':
  *                   description: The state of the transfer process.
  *                   type: string
  */
@@ -266,26 +259,26 @@ r.post(
  *               '@type':
  *                 description: The type of the message.
  *                 type: string
- *               'dspace:providerPid':
+ *               'providerPid':
  *                 description: The PID of the provider.
  *                 type: string
- *               'dspace:consumerPid':
+ *               'consumerPid':
  *                 description: The PID of the consumer.
  *                 type: string
- *               'dspace:dataAddress':
+ *               'dataAddress':
  *                 description: The data address.
  *                 type: object
  *                 properties:
  *                   '@type':
  *                     description: The type of the data address.
  *                     type: string
- *                   'dspace:endpointType':
+ *                   'endpointType':
  *                     description: The endpoint type of the data address.
  *                     type: string
- *                   'dspace:endpoint':
+ *                   'endpoint':
  *                     description: The endpoint of the data address.
  *                     type: string
- *                   'dspace:endpointProperties':
+ *                   'endpointProperties':
  *                     description: The endpoint properties of the data address.
  *                     type: array
  *                     items:
@@ -294,10 +287,10 @@ r.post(
  *                         '@type':
  *                           description: The type of the endpoint property.
  *                           type: string
- *                         'dspace:name':
+ *                         'name':
  *                           description: The name of the endpoint property.
  *                           type: string
- *                         'dspace:value':
+ *                         'value':
  *                           description: The value of the endpoint property.
  *                           type: string
  *     responses:
@@ -328,7 +321,7 @@ r.post(
 r.post(
     '/transfers/:providerPid/start',
     transferStartMessageValidation,
-    verifyProviderTpPid,
+    // verifyProviderTpPid,
     validate,
     handleTransferProcessStarted
 );
@@ -360,10 +353,10 @@ r.post(
  *               "@type":
  *                 description: The type of the message.
  *                 type: string
- *               "dspace:providerPid":
+ *               "providerPid":
  *                 description: The PID of the provider.
  *                 type: string
- *               "dspace:consumerPid":
+ *               "consumerPid":
  *                 description: The PID of the consumer.
  *                 type: string
  *     responses:
@@ -427,16 +420,16 @@ r.post(
  *               "@type":
  *                 description: The type of the message.
  *                 type: string
- *               "dspace:providerPid":
+ *               "providerPid":
  *                 description: The PID of the provider.
  *                 type: string
- *               "dspace:consumerPid":
+ *               "consumerPid":
  *                 description: The PID of the consumer.
  *                 type: string
- *               "dspace:code":
+ *               "code":
  *                 description: The code for the termination.
  *                 type: string
- *               "dspace:reason":
+ *               "reason":
  *                 description: The reasons for the termination.
  *                 type: array
  *                 items:
@@ -502,16 +495,16 @@ r.post(
  *               "@type":
  *                 description: The type of the message.
  *                 type: string
- *               "dspace:providerPid":
+ *               "providerPid":
  *                 description: The PID of the provider.
  *                 type: string
- *               "dspace:consumerPid":
+ *               "consumerPid":
  *                 description: The PID of the consumer.
  *                 type: string
- *               "dspace:code":
+ *               "code":
  *                 description: The code for the suspension.
  *                 type: string
- *               "dspace:reason":
+ *               "reason":
  *                 description: The reasons for the suspension.
  *                 type: array
  *                 items:
@@ -578,26 +571,26 @@ r.post(
  *               "@type":
  *                 description: The type of the message.
  *                 type: string
- *               "dspace:providerPid":
+ *               "providerPid":
  *                 description: The PID of the provider.
  *                 type: string
- *               "dspace:consumerPid":
+ *               "consumerPid":
  *                 description: The PID of the consumer.
  *                 type: string
- *               "dspace:dataAddress":
+ *               "dataAddress":
  *                 description: The data address of the transfer process.
  *                 type: object
  *                 properties:
  *                   "@type":
  *                     description: The type of the data address.
  *                     type: string
- *                   "dspace:endpointType":
+ *                   "endpointType":
  *                     description: The type of the endpoint.
  *                     type: string
- *                   "dspace:endpoint":
+ *                   "endpoint":
  *                     description: The endpoint of the data address.
  *                     type: string
- *                   "dspace:endpointProperties":
+ *                   "endpointProperties":
  *                     description: The endpoint properties of the data address.
  *                     type: array
  *                     items:
@@ -606,10 +599,10 @@ r.post(
  *                         '@type':
  *                           description: The type of the endpoint property.
  *                           type: string
- *                         'dspace:name':
+ *                         'name':
  *                           description: The name of the endpoint property.
  *                           type: string
- *                         'dspace:value':
+ *                         'value':
  *                           description: The value of the endpoint property.
  *                           type: string
  *     responses:
@@ -673,10 +666,10 @@ r.post(
  *               "@type":
  *                 description: The type of the message.
  *                 type: string
- *               "dspace:providerPid":
+ *               "providerPid":
  *                 description: The PID of the provider.
  *                 type: string
- *               "dspace:consumerPid":
+ *               "consumerPid":
  *                 description: The PID of the consumer.
  *                 type: string
  *     responses:
@@ -740,16 +733,16 @@ r.post(
  *               "@type":
  *                 description: The type of the message.
  *                 type: string
- *               "dspace:providerPid":
+ *               "providerPid":
  *                 description: The PID of the provider.
  *                 type: string
- *               "dspace:consumerPid":
+ *               "consumerPid":
  *                 description: The PID of the consumer.
  *                 type: string
- *               "dspace:code":
+ *               "code":
  *                 description: The code for the termination.
  *                 type: string
- *               "dspace:reason":
+ *               "reason":
  *                 description: The reasons for the termination.
  *                 type: array
  *                 items:
@@ -815,16 +808,16 @@ r.post(
  *               "@type":
  *                 description: The type of the message.
  *                 type: string
- *               "dspace:providerPid":
+ *               "providerPid":
  *                 description: The PID of the provider.
  *                 type: string
- *               "dspace:consumerPid":
+ *               "consumerPid":
  *                 description: The PID of the consumer.
  *                 type: string
- *               "dspace:code":
+ *               "code":
  *                 description: The code for the suspension.
  *                 type: string
- *               "dspace:reason":
+ *               "reason":
  *                 description: The reasons for the suspension.
  *                 type: array
  *                 items:
@@ -862,5 +855,53 @@ r.post(
     handleTransferProcessSuspension
 );
 //#endregion
+
+r.post('/tck/transfers', validate, handleAskStartTransfer);
+
+r.post(
+    '/tck/transfers/request',
+    transferRequestMessageValidation,
+    validate,
+    handleTransferProcessRequestTCK
+);
+r.get(
+    '/tck/transfers/:providerPid',
+    verifyProviderTpPid,
+    validate,
+    getTransferProcess
+);
+
+r.post('/tck/transfers', validate, handleAskStartTransfer);
+
+r.post(
+    '/tck/transfers/:providerPid/start',
+    transferStartMessageValidation,
+    verifyProviderTpPid,
+    validate,
+    handleTransferProcessStarted
+);
+
+r.post(
+    '/tck/transfers/:providerPid/completion',
+    transferCompletionMessageValidation,
+    verifyProviderTpPid,
+    validate,
+    handleTransferProcessCompleted
+);
+
+r.post(
+    '/tck/transfers/:providerPid/suspension',
+    transferSuspensionMessageValidation,
+    verifyProviderTpPid,
+    validate,
+    handleTransferProcessSuspension
+);
+r.post(
+    '/tck/transfers/:providerPid/termination',
+    transferTerminationMessageValidation,
+    verifyProviderTpPid,
+    validate,
+    handleTransferProcessTermination
+);
 
 export default r;

@@ -40,35 +40,35 @@ describe('DSP Contract Negotiation API tests', () => {
                     .post('/negotiations/request')
                     .send({
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
-                        '@type': 'dspace:ContractRequestMessage',
-                        'dspace:consumerPid': consumerPid,
-                        'dspace:offer': {
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
+                        '@type': 'ContractRequestMessage',
+                        'consumerPid': consumerPid,
+                        'offer': {
                             '@type': 'odrl:Offer',
                             '@id': '...',
                         },
-                        'dspace:callbackAddress': 'https://callback.com',
+                        'callbackAddress': 'https://callback.com',
                     });
 
                 expect(response.status).to.equal(201);
                 expect(response.body).to.have.property(
                     '@context',
-                    'https://w3id.org/dspace/2024/1/context.json'
+                    ['https://w3id.org/dspace/2025/1/context.jsonld']
                 );
                 expect(response.body).to.have.property(
                     '@type',
-                    'dspace:ContractNegotiation'
+                    'ContractNegotiation'
                 );
                 expect(response.body).to.have.property(
-                    'dspace:consumerPid',
+                    'consumerPid',
                     consumerPid
                 );
                 expect(response.body).to.have.property(
-                    'dspace:state',
-                    'dspace:REQUESTED'
+                    'state',
+                    'REQUESTED'
                 );
 
-                providerPid = response.body['dspace:providerPid'];
+                providerPid = response.body['providerPid'];
             });
 
             it('Should return 400 for invalid contract negotiation request format', async () => {
@@ -77,8 +77,8 @@ describe('DSP Contract Negotiation API tests', () => {
                     .send({
                         // Missing required fields
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
-                        '@type': 'dspace:ContractRequestMessage',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
+                        '@type': 'ContractRequestMessage',
                     });
                 expect(response.status).to.equal(400);
             });
@@ -92,23 +92,23 @@ describe('DSP Contract Negotiation API tests', () => {
                 expect(response.status).to.equal(200);
                 expect(response.body).to.have.property(
                     '@context',
-                    'https://w3id.org/dspace/2024/1/context.json'
+                    ['https://w3id.org/dspace/2025/1/context.jsonld']
                 );
                 expect(response.body).to.have.property(
                     '@type',
-                    'dspace:ContractNegotiation'
+                    'ContractNegotiation'
                 );
                 expect(response.body).to.have.property(
-                    'dspace:providerPid',
+                    'providerPid',
                     providerPid
                 );
                 expect(response.body).to.have.property(
-                    'dspace:consumerPid',
+                    'consumerPid',
                     consumerPid
                 );
                 expect(response.body).to.have.property(
-                    'dspace:state',
-                    'dspace:REQUESTED'
+                    'state',
+                    'REQUESTED'
                 );
             });
 
@@ -126,35 +126,35 @@ describe('DSP Contract Negotiation API tests', () => {
                     .post(`/negotiations/${providerPid}/request`)
                     .send({
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
-                        '@type': 'dspace:ContractRequestMessage',
-                        'dspace:consumerPid': consumerPid,
-                        'dspace:offer': {
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
+                        '@type': 'ContractRequestMessage',
+                        'consumerPid': consumerPid,
+                        'offer': {
                             '@type': 'odrl:Offer',
                             '@id': '...',
                         },
-                        'dspace:callbackAddress': 'https://callback.com',
+                        'callbackAddress': 'https://callback.com',
                     });
                 expect(response.status).to.equal(200);
                 expect(response.body).to.have.property(
                     '@context',
-                    'https://w3id.org/dspace/2024/1/context.json'
+                    ['https://w3id.org/dspace/2025/1/context.jsonld']
                 );
                 expect(response.body).to.have.property(
                     '@type',
-                    'dspace:ContractNegotiation'
+                    'ContractNegotiation'
                 );
                 expect(response.body).to.have.property(
-                    'dspace:providerPid',
+                    'providerPid',
                     providerPid
                 );
                 expect(response.body).to.have.property(
-                    'dspace:consumerPid',
+                    'consumerPid',
                     consumerPid
                 );
                 expect(response.body).to.have.property(
-                    'dspace:state',
-                    'dspace:OFFERED'
+                    'state',
+                    'OFFERED'
                 );
             });
 
@@ -164,8 +164,8 @@ describe('DSP Contract Negotiation API tests', () => {
                     .send({
                         // Missing required fields
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
-                        '@type': 'dspace:ContractOfferMessage',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
+                        '@type': 'ContractOfferMessage',
                     });
                 expect(response.status).to.equal(404);
                 expect(response.body).to.have.property(
@@ -180,8 +180,8 @@ describe('DSP Contract Negotiation API tests', () => {
                     .send({
                         // Missing required fields
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
-                        '@type': 'dspace:ContractOfferMessage',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
+                        '@type': 'ContractOfferMessage',
                     });
                 expect(response.status).to.equal(400);
             });
@@ -193,32 +193,32 @@ describe('DSP Contract Negotiation API tests', () => {
                     .post(`/negotiations/${providerPid}/events`)
                     .send({
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
-                        '@type': 'dspace:ContractNegotiationEventMessage',
-                        'dspace:providerPid': providerPid,
-                        'dspace:consumerPid': consumerPid,
-                        'dspace:eventType': 'dspace:ACCEPTED',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
+                        '@type': 'ContractNegotiationEventMessage',
+                        'providerPid': providerPid,
+                        'consumerPid': consumerPid,
+                        'eventType': 'ACCEPTED',
                     });
                 expect(response.status).to.equal(200);
                 expect(response.body).to.have.property(
                     '@context',
-                    'https://w3id.org/dspace/2024/1/context.json'
+                    ['https://w3id.org/dspace/2025/1/context.jsonld']
                 );
                 expect(response.body).to.have.property(
                     '@type',
-                    'dspace:ContractNegotiation'
+                    'ContractNegotiation'
                 );
                 expect(response.body).to.have.property(
-                    'dspace:providerPid',
+                    'providerPid',
                     providerPid
                 );
                 expect(response.body).to.have.property(
-                    'dspace:consumerPid',
+                    'consumerPid',
                     consumerPid
                 );
                 expect(response.body).to.have.property(
-                    'dspace:state',
-                    'dspace:ACCEPTED'
+                    'state',
+                    'ACCEPTED'
                 );
             });
 
@@ -228,8 +228,8 @@ describe('DSP Contract Negotiation API tests', () => {
                     .send({
                         // Missing required fields
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
-                        '@type': 'dspace:ContractNegotiationEventMessage',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
+                        '@type': 'ContractNegotiationEventMessage',
                     });
                 expect(response.status).to.equal(400);
             });
@@ -241,19 +241,19 @@ describe('DSP Contract Negotiation API tests', () => {
                     .post(`/negotiations/${providerPid}/agreement/verification`)
                     .send({
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
-                        '@type': 'dspace:ContractAgreementVerificationMessage',
-                        'dspace:providerPid': providerPid,
-                        'dspace:consumerPid': consumerPid,
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
+                        '@type': 'ContractAgreementVerificationMessage',
+                        'providerPid': providerPid,
+                        'consumerPid': consumerPid,
                     });
                 expect(response.status).to.equal(200);
                 expect(response.body).to.have.property(
                     '@context',
-                    'https://w3id.org/dspace/2024/1/context.json'
+                    ['https://w3id.org/dspace/2025/1/context.jsonld']
                 );
                 expect(response.body).to.have.property(
                     '@type',
-                    'dspace:ContractNegotiation'
+                    'ContractNegotiation'
                 );
                 expect(response.body).to.have.property(
                     'dspace:providerPid',
@@ -275,7 +275,7 @@ describe('DSP Contract Negotiation API tests', () => {
                     .send({
                         // Missing required fields
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
                         '@type': 'dspace:ContractAgreementVerificationMessage',
                     });
                 expect(response.status).to.equal(400);
@@ -288,7 +288,7 @@ describe('DSP Contract Negotiation API tests', () => {
                     .post(`/negotiations/${providerPid}/termination`)
                     .send({
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
                         '@type': 'dspace:ContractNegotiationTerminationMessage',
                         'dspace:providerPid': providerPid,
                         'dspace:consumerPid': consumerPid,
@@ -298,7 +298,7 @@ describe('DSP Contract Negotiation API tests', () => {
                 expect(response.status).to.equal(200);
                 expect(response.body).to.have.property(
                     '@context',
-                    'https://w3id.org/dspace/2024/1/context.json'
+                    ['https://w3id.org/dspace/2025/1/context.jsonld']
                 );
                 expect(response.body).to.have.property(
                     '@type',
@@ -324,7 +324,7 @@ describe('DSP Contract Negotiation API tests', () => {
                     .send({
                         // Missing required fields
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
                         '@type': 'dspace:ContractNegotiationTerminationMessage',
                     });
                 expect(response.status).to.equal(400);
@@ -337,7 +337,7 @@ describe('DSP Contract Negotiation API tests', () => {
                     .post('/negotiations/offers')
                     .send({
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
                         '@type': 'dspace:ContractOfferMessage',
                         'dspace:providerPid': providerPid,
                         'dspace:offer': {
@@ -352,7 +352,7 @@ describe('DSP Contract Negotiation API tests', () => {
 
                 expect(response.body).to.have.property(
                     '@context',
-                    'https://w3id.org/dspace/2024/1/context.json'
+                    ['https://w3id.org/dspace/2025/1/context.jsonld']
                 );
                 expect(response.body).to.have.property(
                     '@type',
@@ -374,7 +374,7 @@ describe('DSP Contract Negotiation API tests', () => {
                     .send({
                         // Missing required fields
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
                         '@type': 'dspace:ContractOfferMessage',
                     });
                 expect(response.status).to.equal(400);
@@ -387,7 +387,7 @@ describe('DSP Contract Negotiation API tests', () => {
                     .post(`/callback/negotiations/${consumerPid}/offers`)
                     .send({
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
                         '@type': 'dspace:ContractOfferMessage',
                         'dspace:providerPid': providerPid,
                         'dspace:offer': {},
@@ -396,7 +396,7 @@ describe('DSP Contract Negotiation API tests', () => {
                 expect(response.status).to.equal(200);
                 expect(response.body).to.have.property(
                     '@context',
-                    'https://w3id.org/dspace/2024/1/context.json'
+                    ['https://w3id.org/dspace/2025/1/context.jsonld']
                 );
                 expect(response.body).to.have.property(
                     '@type',
@@ -418,7 +418,7 @@ describe('DSP Contract Negotiation API tests', () => {
                     .send({
                         // Missing required fields
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
                         '@type': 'dspace:ContractRequestMessage',
                     });
                 expect(response.status).to.equal(400);
@@ -431,7 +431,7 @@ describe('DSP Contract Negotiation API tests', () => {
                     .post(`/callback/negotiations/${consumerPid}/agreement`)
                     .send({
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
                         '@type': 'dspace:ContractAgreementMessage',
                         'dspace:providerPid': providerPid,
                         'dspace:consumerPid': consumerPid,
@@ -443,7 +443,7 @@ describe('DSP Contract Negotiation API tests', () => {
                 expect(response.status).to.equal(200);
                 expect(response.body).to.have.property(
                     '@context',
-                    'https://w3id.org/dspace/2024/1/context.json'
+                    ['https://w3id.org/dspace/2025/1/context.jsonld']
                 );
                 expect(response.body).to.have.property(
                     '@type',
@@ -466,7 +466,7 @@ describe('DSP Contract Negotiation API tests', () => {
                     .send({
                         // Missing required fields
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
                         '@type': 'dspace:ContractAgreementVerificationMessage',
                     });
                 expect(response.status).to.equal(400);
@@ -479,7 +479,7 @@ describe('DSP Contract Negotiation API tests', () => {
                     .post(`/callback/negotiations/${consumerPid}/events`)
                     .send({
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
                         '@type': 'dspace:ContractNegotiationEventMessage',
                         'dspace:providerPid': providerPid,
                         'dspace:consumerPid': consumerPid,
@@ -488,7 +488,7 @@ describe('DSP Contract Negotiation API tests', () => {
                 expect(response.status).to.equal(200);
                 expect(response.body).to.have.property(
                     '@context',
-                    'https://w3id.org/dspace/2024/1/context.json'
+                    ['https://w3id.org/dspace/2025/1/context.jsonld']
                 );
                 expect(response.body).to.have.property(
                     '@type',
@@ -514,7 +514,7 @@ describe('DSP Contract Negotiation API tests', () => {
                     .send({
                         // Missing required fields
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
                         '@type': 'dspace:ContractNegotiationEventMessage',
                     });
                 expect(response.status).to.equal(400);
@@ -527,7 +527,7 @@ describe('DSP Contract Negotiation API tests', () => {
                     .post(`/callback/negotiations/${consumerPid}/termination`)
                     .send({
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
                         '@type': 'dspace:ContractNegotiationTerminationMessage',
                         'dspace:consumerPid': providerPid,
                         'dspace:providerPid': providerPid,
@@ -537,7 +537,7 @@ describe('DSP Contract Negotiation API tests', () => {
                 expect(response.status).to.equal(200);
                 expect(response.body).to.have.property(
                     '@context',
-                    'https://w3id.org/dspace/2024/1/context.json'
+                    ['https://w3id.org/dspace/2025/1/context.jsonld']
                 );
                 expect(response.body).to.have.property(
                     '@type',
@@ -560,7 +560,7 @@ describe('DSP Contract Negotiation API tests', () => {
                     .send({
                         // Missing required fields
                         '@context':
-                            'https://w3id.org/dspace/2024/1/context.json',
+                            ['https://w3id.org/dspace/2025/1/context.jsonld'],
                         '@type': 'dspace:ContractNegotiationTerminationMessage',
                     });
                 expect(response.status).to.equal(400);

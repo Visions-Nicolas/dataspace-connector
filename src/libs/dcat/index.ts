@@ -13,6 +13,7 @@ import { skos } from './models/skos';
 import { vcard } from './models/vcard';
 import { Relationship } from './models/Relationship';
 import { ICatalog } from '../../utils/types/catalog';
+import { randomUUID } from 'node:crypto';
 export const mapDataResource = (
     resource: IDataResource & { _id: string }
 ): Dataset => {
@@ -167,10 +168,11 @@ export const mapCatalog = async (resources: any[]) => {
     );
 
     return {
-        '@context': 'https://w3id.org/dspace/2024/1/context.json',
-        '@type': 'dcat:Catalog',
-        'dcat:dataset': mapConnectorCatalogToDcatCatalog(dataset), //map as dataset
-        'dspace:participantId': await getAppKey(), //get SD
-        'foaf:homepage': urlChecker(await getCatalogUri(), 'catalog/offers'),
+        '@id': randomUUID(),
+        '@context': ['https://w3id.org/dspace/2025/1/context.jsonld'],
+        '@type': 'Catalog',
+        dataset: mapConnectorCatalogToDcatCatalog(dataset), //map as dataset
+        participantId: await getAppKey(), //get SD
+        homepage: urlChecker(await getCatalogUri(), 'catalog/offers'),
     };
 };

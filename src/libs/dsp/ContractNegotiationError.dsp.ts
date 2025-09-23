@@ -5,38 +5,38 @@ export class ContractNegotiationError
     extends Error
     implements IDSA.IContractNegotiationError
 {
-    '@context' = 'https://w3id.org/dspace/2024/1/context.json' as const;
-    '@type' = 'dspace:ContractNegotiationError' as const;
+    '@context' = ['https://w3id.org/dspace/2025/1/context.jsonld'] as const;
+    '@type' = 'ContractNegotiationError' as const;
 
     /**
      * The Contract negotiation Unique ID on Provider side
      */
-    'dspace:providerPid': string;
+    'providerPid': string;
 
     /**
      * The Contract negotiation Unique ID on Consumer side
      */
-    'dspace:consumerPid': string;
-    'dspace:code'?: string;
-    'dspace:reason'?: any[];
-    'dct:description'?: IDSA.MultilanguageProperty[];
+    'consumerPid': string;
+    'code'?: string;
+    'reason'?: any[];
+    'description'?: IDSA.MultilanguageProperty[];
 
     constructor(message?: string) {
         super(message);
-        this['dspace:code'] = '';
-        this['dspace:reason'] = [];
-        this['dct:description'] = [];
+        this['code'] = '';
+        this['reason'] = [];
+        this['description'] = [];
     }
 
     getJSONResponse() {
         return {
             '@context': this['@context'],
             '@type': this['@type'],
-            'dspace:providerPid': this['dspace:providerPid'],
-            'dspace:consumerPid': this['dspace:consumerPid'],
-            'dspace:code': this['dspace:code'],
-            'dspace:reason': this['dspace:reason'],
-            'dct:description': this['dct:description'],
+            providerPid: this['providerPid'],
+            consumerPid: this['consumerPid'],
+            'code': this['code'],
+            'reason': this['reason'],
+            description: this['description'],
         };
     }
 }

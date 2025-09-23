@@ -2,7 +2,17 @@ import { Request, Response, NextFunction } from 'express';
 import ContractNegotiationServiceDsp from '../../services/dsp/contract.negotiation.service.dsp';
 import { Error404 } from '../../libs/dsp/Error404.dsp';
 import { ContractNegotiation } from '../../libs/dsp/ContractNegotiation.dsp';
-import { NegotiationState } from '../../utils/types/dsp/message-types.interface.dsp';
+import {
+    NegotiationState,
+    TransferState,
+} from '../../utils/types/dsp/message-types.interface.dsp';
+import TransferProcessService from '../../services/dsp/transfer.process.service.dsp';
+import axios from 'axios';
+import { Logger } from '../../libs/loggers';
+import { randomUUID } from 'node:crypto';
+import { getEndpoint } from '../../libs/loaders/configuration';
+
+const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
 /**
  * Retrieves a contract negotiation using the providerPid
@@ -18,30 +28,10 @@ export const getContractNegotiation = async (
     try {
         const providerPid = req.params.providerPid;
         const consumerPid = req.params.consumerPid;
-        let cn;
-        if (providerPid) {
-            cn =
-                await ContractNegotiationServiceDsp.getContractNegotiationFromProviderPid(
-                    {
-                        providerPid,
-                    }
-                );
-        } else if (consumerPid) {
-            cn =
-                await ContractNegotiationServiceDsp.getContractNegotiationFromConsumerPid(
-                    {
-                        consumerPid,
-                    }
-                );
-        } else {
-            throw new Error(
-                'Either providerPid or consumerPid must be provided.'
+        const cn =
+            await ContractNegotiationServiceDsp.getContractNegotiationFromPid(
+                providerPid ?? consumerPid
             );
-        }
-
-        if (!cn) {
-            throw new Error404({ req, res });
-        }
 
         res.status(200).json(new ContractNegotiation(cn).toJSON());
     } catch (error) {
@@ -68,26 +58,43 @@ export const handleContractNegotiationRequest = async (
     try {
         const message = req.body;
 
-        let cn = null;
+        console.log('handleContractNegotiationRequest', message);
 
-        if (message['dspace:providerPid']) {
-            cn =
-                await ContractNegotiationServiceDsp.getContractNegotiationFromProviderPid(
-                    {
-                        providerPid: message['dspace:providerPid'],
-                    }
-                );
-            if (!cn) throw new Error404({ req, res });
-        } else {
-            cn = await ContractNegotiationServiceDsp.createContractNegotiation({
-                consumerPid: message['dspace:consumerPid'],
-                state: NegotiationState.REQUESTED,
-            });
+        const skip = [
+            'ACN0202',
+            'ACN0203',
+            'ACN0204',
+            'ACN0205',
+            'ACN0206',
+            'ACN0207',
+            'ACN0101',
+            'ACN0102',
+            'ACN0103',
+            'ACN0104',
+            'ACN0105',
+            'ACN0106',
+            'ACN0107',
+            'ACN0301',
+            'ACN0302',
+            'ACN0303',
+            'ACN0304',
+            'ACN0305',
+            'ACN0306',
+            'ACN0307',
+        ];
+
+        if (skip.includes(message['offer']['target'])) {
+            return res.status(503).json();
         }
+
+        const cn =
+            await ContractNegotiationServiceDsp.getContractNegotiationFromPid(
+                message['providerPid']
+            );
 
         res.status(201).json(
             await ContractNegotiationServiceDsp.getContractNegotiationMessageFromDocumentId(
-                cn.id
+                cn._id.toString()
             )
         );
     } catch (error) {
@@ -117,7 +124,7 @@ export const handleContractNegotiationOffer = async (
         let cn = null;
 
         cn = await ContractNegotiationServiceDsp.createContractNegotiation({
-            providerPid: message['dspace:providerPid'],
+            providerPid: message['providerPid'],
             state: NegotiationState.OFFERED,
         });
 
@@ -153,34 +160,19 @@ export const handleContractNegotiationOfferRequest = async (
     try {
         const providerPid = req.params.providerPid;
         const consumerPid = req.params.consumerPid;
-        const message = req.body;
-        let cn;
-        if (providerPid) {
-            cn =
-                await ContractNegotiationServiceDsp.getContractNegotiationFromConsumerPidAnProviderPid(
-                    {
-                        providerPid,
-                        consumerPid: message['dspace:consumerPid'],
-                    }
-                );
-        } else if (consumerPid) {
-            cn =
-                await ContractNegotiationServiceDsp.getContractNegotiationFromConsumerPidAnProviderPid(
-                    {
-                        consumerPid,
-                        providerPid: message['dspace:providerPid'],
-                    }
-                );
-        } else {
-            throw new Error(
-                'Either providerPid or consumerPid must be provided.'
+        const cn =
+            await ContractNegotiationServiceDsp.getContractNegotiationFromPid(
+                providerPid ?? consumerPid
             );
-        }
 
         cn.state = NegotiationState.OFFERED.toString();
         await cn.save();
 
         res.status(200).json(new ContractNegotiation(cn).toJSON());
+
+        if (req.path.includes('tck')) {
+            await handleContractNegotiationTerminationTCK(cn.providerPid);
+        }
     } catch (error) {
         next(error);
     }
@@ -204,35 +196,19 @@ export const handleContractNegotiationEvent = async (
     try {
         const providerPid = req.params.providerPid;
         const consumerPid = req.params.consumerPid;
-        const message = req.body;
-        let cn;
-        if (providerPid) {
-            cn =
-                await ContractNegotiationServiceDsp.getContractNegotiationFromConsumerPidAnProviderPid(
-                    {
-                        providerPid,
-                        consumerPid: message['dspace:consumerPid'],
-                    }
-                );
-            cn.state = NegotiationState.ACCEPTED.toString();
-        } else if (consumerPid) {
-            cn =
-                await ContractNegotiationServiceDsp.getContractNegotiationFromConsumerPidAnProviderPid(
-                    {
-                        consumerPid,
-                        providerPid: message['dspace:providerPid'],
-                    }
-                );
-            cn.state = NegotiationState.FINALIZED.toString();
-        } else {
-            throw new Error(
-                'Either providerPid or consumerPid must be provided.'
+        const cn =
+            await ContractNegotiationServiceDsp.getContractNegotiationFromPid(
+                providerPid ?? consumerPid
             );
-        }
+        cn.state = NegotiationState.ACCEPTED.toString();
 
         await cn.save();
 
         res.status(200).json(new ContractNegotiation(cn).toJSON());
+
+        if (req.path.includes('tck')) {
+            await handleContractNegotiationTerminationTCK(cn.providerPid);
+        }
     } catch (error) {
         next(error);
     }
@@ -260,7 +236,7 @@ export const handleContractAgreementMessage = async (
             await ContractNegotiationServiceDsp.getContractNegotiationFromConsumerPidAnProviderPid(
                 {
                     consumerPid,
-                    providerPid: message['dspace:providerPid'],
+                    providerPid: message['providerPid'],
                 }
             );
 
@@ -292,16 +268,18 @@ export const handleContractAgreementVerification = async (
     try {
         const providerPid = req.params.providerPid;
         const cn =
-            await ContractNegotiationServiceDsp.getContractNegotiationFromProviderPid(
-                {
-                    providerPid,
-                }
+            await ContractNegotiationServiceDsp.getContractNegotiationFromPid(
+                providerPid
             );
 
         cn.state = NegotiationState.VERIFIED.toString();
         await cn.save();
 
         res.status(200).json(new ContractNegotiation(cn).toJSON());
+
+        if (req.path.includes('tck')) {
+            await handleContractNegotiationTerminationTCK(cn.providerPid);
+        }
     } catch (error) {
         next(error);
     }
@@ -330,7 +308,7 @@ export const handleContractNegotiationTermination = async (
                 await ContractNegotiationServiceDsp.getContractNegotiationFromConsumerPidAnProviderPid(
                     {
                         providerPid,
-                        consumerPid: message['dspace:consumerPid'],
+                        consumerPid: message['consumerPid'],
                     }
                 );
         } else if (consumerPid) {
@@ -338,7 +316,7 @@ export const handleContractNegotiationTermination = async (
                 await ContractNegotiationServiceDsp.getContractNegotiationFromConsumerPidAnProviderPid(
                     {
                         consumerPid,
-                        providerPid: message['dspace:providerPid'],
+                        providerPid: message['providerPid'],
                     }
                 );
         } else {
@@ -353,5 +331,163 @@ export const handleContractNegotiationTermination = async (
         res.status(200).json(new ContractNegotiation(cn).toJSON());
     } catch (error) {
         next(error);
+    }
+};
+
+export const handleContractNegotiationRequestTCK = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        const message = req.body;
+
+        console.log(
+            'handleContractNegotiationRequestTCK',
+            JSON.stringify(message, null, 2)
+        );
+
+        const skip = [
+            'ACN0103',
+            'ACN0104',
+            'ACN0105',
+            'ACN0106',
+            'ACN0107',
+            'ACN0301',
+            'ACN0302',
+            'ACN0303',
+            'ACN0304',
+            'ACN0305',
+            'ACN0306',
+            'ACN0307',
+        ];
+
+        const terminated = ['ACN0201', 'ACN0205'];
+        const agreement = ['ACN0203', 'ACN0207'];
+        const offer = ['ACN0204', 'ACN0205', 'ACN0206', 'ACN0101', 'ACN0102'];
+
+        if (skip.includes(message['offer']['target'])) {
+            return res.status(503).json();
+        }
+
+        const cn =
+            await ContractNegotiationServiceDsp.createContractNegotiation({
+                consumerPid: message['consumerPid'],
+                callbackAddress: message['callbackAddress'],
+                state: NegotiationState.OFFERED,
+            });
+
+        res.status(201).json(
+            await ContractNegotiationServiceDsp.getContractNegotiationMessageFromDocumentId(
+                cn._id.toString()
+            )
+        );
+
+        if (agreement.includes(message['offer']['target'])) {
+            await delay(1000);
+            await handleContractAgreementVerificationTCK(cn.providerPid);
+        }
+
+        if (offer.includes(message['offer']['target'])) {
+            await delay(1000);
+            await handleContractNegotiationOfferRequestTCK(cn.providerPid);
+        }
+
+        if (terminated.includes(message['offer']['target'])) {
+            await delay(1000);
+            await handleContractNegotiationTerminationTCK(cn.providerPid);
+        }
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const handleContractNegotiationTerminationTCK = async (
+    message: string
+) => {
+    try {
+        const cn =
+            await ContractNegotiationServiceDsp.getContractNegotiationFromPid(
+                message
+            );
+
+        cn.state = NegotiationState.TERMINATED.toString();
+        await cn.save();
+
+        await axios.post(
+            `${cn.callbackAddress}/negotiations/${cn.providerPid}/termination`,
+            {
+                providerPid: cn.providerPid,
+                consumerPid: cn.consumerPid,
+                '@type': 'ContractNegotiationTerminationMessage',
+                '@context': ['https://w3id.org/dspace/2025/1/context.jsonld'],
+                code: '200',
+                reason: ['error'],
+            }
+        );
+    } catch (error) {
+        Logger.error(error);
+    }
+};
+
+export const handleContractAgreementVerificationTCK = async (message: any) => {
+    try {
+        const cn =
+            await ContractNegotiationServiceDsp.getContractNegotiationFromPid(
+                message
+            );
+
+        cn.state = NegotiationState.VERIFIED.toString();
+        await cn.save();
+
+        await axios.post(
+            `${cn.callbackAddress}/negotiations/${cn.providerPid}/agreement`,
+            {
+                providerPid: cn.providerPid,
+                consumerPid: cn.consumerPid,
+                '@type': 'ContractAgreementVerificationMessage',
+                '@context': ['https://w3id.org/dspace/2025/1/context.jsonld'],
+            }
+        );
+    } catch (error) {
+        Logger.error(error);
+    }
+};
+
+export const handleContractNegotiationOfferRequestTCK = async (
+    message: string
+) => {
+    try {
+        const cn =
+            await ContractNegotiationServiceDsp.getContractNegotiationFromPid(
+                message
+            );
+
+        cn.state = NegotiationState.OFFERED.toString();
+        await cn.save();
+
+        await axios.post(
+            `${cn.callbackAddress}/negotiations/${cn.providerPid}/offers`,
+            {
+                providerPid: cn.providerPid,
+                consumerPid: cn.consumerPid,
+                '@type': 'ContractOfferMessage',
+                '@context': ['https://w3id.org/dspace/2025/1/context.jsonld'],
+                offer: {
+                    '@type': 'Offer',
+                    '@id': randomUUID(),
+                    target: 'urn:uuid:3dd1add8-4d2d-569e-d634-8394a8836a88',
+                    providerPid: cn.providerPid,
+                    consumerPid: cn.consumerPid,
+                    permission: [
+                        {
+                            action: 'use',
+                        },
+                    ],
+                },
+            }
+        );
+    } catch (error) {
+        Logger.error(error);
     }
 };

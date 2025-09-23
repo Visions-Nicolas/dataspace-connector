@@ -7,6 +7,7 @@ import {
     handleContractNegotiationOffer,
     handleContractNegotiationOfferRequest,
     handleContractNegotiationRequest,
+    handleContractNegotiationRequestTCK,
     handleContractNegotiationTermination,
 } from '../../controllers/dsp/negotiations.controller.dsp';
 import {
@@ -20,93 +21,87 @@ const r: Router = Router();
 const ContractOfferMessageValidation = [
     body('@context')
         .exists()
-        .isString()
-        .equals('https://w3id.org/dspace/2024/1/context.json'),
-    body('@type').exists().isString().equals('dspace:ContractOfferMessage'),
-    body('dspace:providerPid').exists().isString(),
-    body('dspace:consumerPid').optional().isString(),
-    body('dspace:offer').exists(),
-    body('dspace:callbackAddress').exists().isString(),
+        .isArray()
+        .contains('https://w3id.org/dspace/2025/1/context.jsonld'),
+    body('@type').exists().isString().equals('ContractOfferMessage'),
+    body('providerPid').exists().isString(),
+    body('consumerPid').optional().isString(),
+    body('offer').exists(),
+    body('callbackAddress').exists().isString(),
 ];
 
 const ContractRequestMessageValidation = [
     body('@context')
         .exists()
-        .isString()
-        .equals('https://w3id.org/dspace/2024/1/context.json'),
-    body('@type').exists().isString().equals('dspace:ContractRequestMessage'),
-    body('dspace:providerPid').optional().isString(),
-    body('dspace:consumerPid').exists().isString(),
-    body('dspace:offer').exists(),
-    body('dspace:callbackAddress').exists().isString(),
+        .isArray()
+        .contains('https://w3id.org/dspace/2025/1/context.jsonld'),
+    body('@type').exists().isString().equals('ContractRequestMessage'),
+    body('providerPid').optional().isString(),
+    body('consumerPid').exists().isString(),
+    body('offer').exists(),
+    body('callbackAddress').optional().isString(),
 ];
 
 const ContractAgreementMessageValidation = [
     body('@context')
         .exists()
-        .isString()
-        .equals('https://w3id.org/dspace/2024/1/context.json'),
-    body('@type').exists().isString().equals('dspace:ContractAgreementMessage'),
-    body('dspace:providerPid').exists().isString(),
-    body('dspace:consumerPid').exists().isString(),
-    body('dspace:agreement').exists(),
-    body('dspace:callbackAddress').exists().isString(),
+        .isArray()
+        .contains('https://w3id.org/dspace/2025/1/context.jsonld'),
+    body('@type').exists().isString().equals('ContractAgreementMessage'),
+    body('providerPid').exists().isString(),
+    body('consumerPid').exists().isString(),
+    body('agreement').exists(),
+    body('callbackAddress').exists().isString(),
 ];
 
 const ContractAgreementVerificationMessageValidation = [
     body('@context')
         .exists()
-        .isString()
-        .equals('https://w3id.org/dspace/2024/1/context.json'),
+        .isArray()
+        .contains('https://w3id.org/dspace/2025/1/context.jsonld'),
     body('@type')
         .exists()
         .isString()
-        .equals('dspace:ContractAgreementVerificationMessage'),
-    body('dspace:providerPid').exists().isString(),
-    body('dspace:consumerPid').exists().isString(),
+        .equals('ContractAgreementVerificationMessage'),
+    body('providerPid').exists().isString(),
+    body('consumerPid').exists().isString(),
 ];
 
 const ContractEventMessageAcceptedValidation = [
     body('@context')
         .exists()
-        .isString()
-        .equals('https://w3id.org/dspace/2024/1/context.json'),
-    body('@type')
-        .exists()
-        .isString()
-        .equals('dspace:ContractNegotiationEventMessage'),
-    body('dspace:providerPid').exists().isString(),
-    body('dspace:consumerPid').exists().isString(),
-    body('dspace:eventType').exists().isString().equals('dspace:ACCEPTED'),
+        .isArray()
+        .contains('https://w3id.org/dspace/2025/1/context.jsonld'),
+    body('@type').exists().isString().equals('ContractNegotiationEventMessage'),
+    body('providerPid').exists().isString(),
+    body('consumerPid').exists().isString(),
+    body('eventType').exists().isString().equals('ACCEPTED'),
 ];
 
 const ContractEventMessageFinalizedValidation = [
     body('@context')
         .exists()
-        .isString()
-        .equals('https://w3id.org/dspace/2024/1/context.json'),
-    body('@type')
-        .exists()
-        .isString()
-        .equals('dspace:ContractNegotiationEventMessage'),
-    body('dspace:providerPid').exists().isString(),
-    body('dspace:consumerPid').exists().isString(),
-    body('dspace:eventType').exists().isString().equals('dspace:FINALIZED'),
+        .isArray()
+        .contains('https://w3id.org/dspace/2025/1/context.jsonld'),
+    body('@type').exists().isString().equals('ContractNegotiationEventMessage'),
+    body('providerPid').exists().isString(),
+    body('consumerPid').exists().isString(),
+    body('eventType').exists().isString().equals('FINALIZED'),
 ];
 
 const ContractNegotiationTerminationMessageValidation = [
     body('@context')
         .exists()
-        .isString()
-        .equals('https://w3id.org/dspace/2024/1/context.json'),
+        .isArray()
+        .contains('https://w3id.org/dspace/2025/1/context.jsonld'),
     body('@type')
         .exists()
         .isString()
-        .equals('dspace:ContractNegotiationTerminationMessage'),
-    body('dspace:providerPid').exists().isString(),
-    body('dspace:consumerPid').exists().isString(),
-    body('dspace:code').optional().isString(),
-    body('dspace:reason').optional().isArray(),
+        .equals('ContractNegotiationTerminationMessage'),
+    body('providerPid').exists().isString(),
+    body('consumerPid').exists().isString(),
+    body('code').optional().isString(),
+    body('reason').optional().isArray(),
 ];
 
 /**
@@ -147,16 +142,16 @@ const ContractNegotiationTerminationMessageValidation = [
  *                 "@type":
  *                   description: The type of the message
  *                   type: string
- *                   example: "dspace:ContractNegotiation"
- *                 "dspace:providerPid":
+ *                   example: "ContractNegotiation"
+ *                 "providerPid":
  *                   description: The PID of the provider
  *                   type: string
  *                   example: "urn:uuid:dcbf434c-eacf-4582-9a02-f8dd50120fd3"
- *                 "dspace:consumerPid":
+ *                 "consumerPid":
  *                   description: The PID of the consumer
  *                   type: string
  *                   example: "urn:uuid:32541fe6-c580-409e-85a8-8a9a32fbe833"
- *                 "dspace:state":
+ *                 "state":
  *                   description: The state of the contract negotiation
  *                   type: string
  *                   example: "REQUESTED"
@@ -190,16 +185,16 @@ r.get(
  *               '@type':
  *                 description: The type of the message
  *                 type: string
- *               dspace:offer:
+ *               offer:
  *                 description: The offer being made
  *                 type: object
- *               dspace:callbackAddress:
+ *               callbackAddress:
  *                 description: The callback address for the consumer
  *                 type: string
- *               dspace:consumerPid:
+ *               consumerPid:
  *                 description: The PID of the consumer
  *                 type: string
- *               dspace:providerPid:
+ *               providerPid:
  *                 description: The PID of the provider
  *                 type: string
  *     responses:
@@ -217,16 +212,16 @@ r.get(
  *                 "@type":
  *                   description: The type of the message
  *                   type: string
- *                   example: "dspace:ContractNegotiation"
- *                 "dspace:providerPid":
+ *                   example: "ContractNegotiation"
+ *                 "providerPid":
  *                   description: The PID of the provider
  *                   type: string
  *                   example: "urn:uuid:dcbf434c-eacf-4582-9a02-f8dd50120fd3"
- *                 "dspace:consumerPid":
+ *                 "consumerPid":
  *                   description: The PID of the consumer
  *                   type: string
  *                   example: "urn:uuid:32541fe6-c580-409e-85a8-8a9a32fbe833"
- *                 "dspace:state":
+ *                 "state":
  *                   description: The state of the contract negotiation
  *                   type: string
  *                   example: "REQUESTED"
@@ -281,7 +276,7 @@ r.post(
  *               '@type':
  *                 description: The type of the message
  *                 type: string
- *               dspace:offer:
+ *               offer:
  *                 description: The offer being made
  *                 type: object
  *               dspace:callbackAddress:
@@ -492,7 +487,7 @@ r.post(
  *               '@context':
  *                 description: The context of the message.
  *                 type: string
- *                 example: 'https://w3id.org/dspace/2024/1/context.json'
+ *                 example: ['https://w3id.org/dspace/2025/1/context.jsonld']
  *               '@type':
  *                 description: The type of the message.
  *                 type: string
@@ -918,5 +913,51 @@ r.post(
     handleContractNegotiationTermination
 );
 //#endregion
+
+r.get(
+    '/tck/negotiations/:providerPid',
+    verifyProviderPid,
+    validate,
+    getContractNegotiation
+);
+
+r.post(
+    '/tck/negotiations/request',
+    ContractRequestMessageValidation,
+    validate,
+    handleContractNegotiationRequestTCK
+);
+
+r.post(
+    '/tck/negotiations/:providerPid/termination',
+    ContractNegotiationTerminationMessageValidation,
+    verifyProviderPid,
+    validate,
+    handleContractNegotiationTermination
+);
+
+r.post(
+    '/tck/negotiations/:providerPid/events',
+    ContractEventMessageAcceptedValidation,
+    verifyProviderPid,
+    validate,
+    handleContractNegotiationEvent
+);
+
+r.post(
+    '/tck/negotiations/:providerPid/agreement/verification',
+    ContractAgreementVerificationMessageValidation,
+    verifyProviderPid,
+    validate,
+    handleContractAgreementVerification
+);
+
+r.post(
+    '/tck/negotiations/:providerPid/request',
+    ContractRequestMessageValidation,
+    verifyProviderPid,
+    validate,
+    handleContractNegotiationOfferRequest
+);
 
 export default r;
