@@ -16,6 +16,7 @@ import { ExchangeError } from '../../../libs/errors/exchangeError';
 import axios from 'axios';
 import { verifyPayloadDefault } from '../../../utils/validation/payloadValidation';
 import { ObjectId } from 'mongodb';
+import {amqpPublisher, kafkaPublisher, websocketPublisher} from "../../../utils/publisher";
 
 /**
  * trigger the data exchange between provider and consumer in a bilateral or ecosystem contract
@@ -180,6 +181,11 @@ export const consumerExchange = async (
             }
         }
 
+        //Publisher
+        amqpPublisher(dataExchange);
+        kafkaPublisher(dataExchange);
+        websocketPublisher(dataExchange);
+
         return restfulResponse(res, 200, { success, dataExchange, message });
     } catch (e) {
         Logger.error({
@@ -252,7 +258,8 @@ export const consumerImport = async (
 
         await dataExchange?.updateStatus(
             DataExchangeStatusEnum.CONSUMER_IMPORT_ERROR,
-            e.message
+            e.message,
+            await getEndpoint()
         );
 
         return restfulResponse(res, 500, { success: false });

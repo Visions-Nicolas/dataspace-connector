@@ -160,7 +160,6 @@ export const ProviderExportService = async (
 
                                 break;
                             }
-
                             case 'POSTGRESQL': {
                                 let cred;
 
@@ -168,19 +167,21 @@ export const ProviderExportService = async (
                                     endpointData?.representation?.sql;
 
                                 if (!sqlConfig.query) {
+                                    let message = `No SQL query defined for ${resourceSD} in catalog`;
                                     Logger.error({
-                                        message: `No SQL query defined for ${resourceSD} in catalog`,
+                                        message,
                                         location: 'ProviderExportService',
                                     });
-                                    break;
+                                    throw new Error(message);
                                 }
 
                                 if (!sqlConfig?.url) {
+                                    let message = `No URL defined for ${resourceSD} in catalog`;
                                     Logger.error({
-                                        message: `No URL defined for ${resourceSD} in catalog`,
+                                        message,
                                         location: 'ProviderExportService',
                                     });
-                                    break;
+                                    throw new Error(message);
                                 }
 
                                 if (sqlConfig?.credential) {
@@ -207,16 +208,66 @@ export const ProviderExportService = async (
                                         message: `Error executing SQL for ${resourceSD}: ${e.message}`,
                                         location: 'ProviderExportService',
                                     });
-                                    await dataExchange?.updateStatus(
-                                        DataExchangeStatusEnum.PROVIDER_EXPORT_ERROR,
-                                        e.message,
-                                        await getEndpoint()
-                                    );
 
                                     throw e;
                                 }
 
                                 break;
+                            }
+                            case 'FTP': {
+                                // try {
+                                //     // FTP implementation placeholder
+                                //     Logger.info( {
+                                //         message: `FTP representation type selected for ${resourceSD}, but not implemented.`,
+                                //         location: 'ProviderExportService',
+                                //     });
+                                //
+                                //     let cred;
+                                //
+                                //     const ftpConfig =
+                                //         endpointData?.representation?.ftp;
+                                //
+                                //     if (!ftpConfig.host) {
+                                //         let message = `No ftp host defined for ${resourceSD} in catalog`
+                                //         Logger.error({
+                                //             message: message,
+                                //             location: 'ProviderExportService',
+                                //         });
+                                //        throw new Error(message)
+                                //     }
+                                //
+                                //     if (!ftpConfig?.port) {
+                                //         let message = `No ftp port defined for ${resourceSD} in catalog`
+                                //         Logger.error({
+                                //             message: message,
+                                //             location: 'ProviderExportService',
+                                //         });
+                                //         throw new Error(message)
+                                //     }
+                                //
+                                //     if (!ftpConfig?.path) {
+                                //         let message = `No ftp path defined for ${resourceSD} in catalog`
+                                //         Logger.error({
+                                //             message: message,
+                                //             location: 'ProviderExportService',
+                                //         });
+                                //         throw new Error(message)
+                                //     }
+                                //
+                                //     data = ftpConfig;
+                                //
+                                // } catch (e) {
+                                //     Logger.error({
+                                //         message: `Error retrieving FTP data for ${resourceSD}: ${e.message}`,
+                                //         location: 'ProviderExportService',
+                                //     });
+                                //
+                                //     throw e;
+                                // }
+                                break;
+                            }
+                            default: {
+                                throw new Error('Representation type not supported');
                             }
                         }
                     }
@@ -260,11 +311,7 @@ export const ProviderExportService = async (
 
             return true;
         } else {
-            await dataExchange?.updateStatus(
-                DataExchangeStatusEnum.PEP_ERROR,
-                "The policies can't be verified",
-                await getEndpoint()
-            );
+            throw new Error('PEP verification failed');
         }
     } catch (e) {
         Logger.error({

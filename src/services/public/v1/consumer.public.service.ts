@@ -18,6 +18,10 @@ import { postRepresentation } from '../../../libs/loaders/representationFetcher'
 import { providerImport } from '../../../libs/third-party/provider';
 import { getCredentialByIdService } from '../../private/v1/credential.private.service';
 import postgres from 'postgres';
+import  { Client } from 'ssh2'
+import {readFile, writeFileSync} from "node:fs";
+import {readFileSync, writeFile} from "fs";
+import {throws} from "node:assert";
 
 export const triggerBilateralFlow = async (props: {
     contract: string;
@@ -204,6 +208,32 @@ export const triggerEcosystemFlow = async (props: {
         });
         throw new ExchangeError(
             'Wrong resource given',
+            'triggerEcosystemFlow',
+            500
+        );
+    }
+
+    const contractMembers = contractResponse.members.map((e: any) => e.participant);
+
+    if(contractMembers.length === 0){
+        throw new ExchangeError(
+            'No members found in the contract',
+            'triggerEcosystemFlow',
+            500
+        );
+    }
+
+    if(resourceExists && resourceExists.participant && !contractMembers.includes(resourceExists.participant)){
+        throw new ExchangeError(
+            'Participant associated to the resource is not part of the contract',
+            'triggerEcosystemFlow',
+            500
+        );
+    }
+
+    if(purposeExists && purposeExists.participant && !contractMembers.includes(purposeExists.participant)){
+        throw new ExchangeError(
+            'Participant associated to the purpose is not part of the contract',
             'triggerEcosystemFlow',
             500
         );
@@ -506,9 +536,19 @@ export const consumerImportService = async (props: {
 
                 consumerResponse = postConsumerData;
 
-                await dataExchange.updateStatus(
-                    DataExchangeStatusEnum.IMPORT_SUCCESS
-                );
+                if (catalogSoftwareResource.isAPI) {
+                    if (apiResponseRepresentation) {
+                        await handle(
+                            providerImport(
+                                dataExchange.providerEndpoint,
+                                consumerResponse,
+                                dataExchange._id.toString()
+                            )
+                        );
+                    }
+                }
+
+                await dataExchange?.updateStatus(DataExchangeStatusEnum.IMPORT_SUCCESS);
 
                 break;
             }
@@ -565,31 +605,111 @@ export const consumerImportService = async (props: {
 
                 break;
             }
-            default:
-                {
-                    await dataExchange.updateStatus(
-                        DataExchangeStatusEnum.CONSUMER_IMPORT_ERROR,
-                        'Representation type not supported'
-                    );
-                }
+            case 'FTP': {
+                // // FTP implementation placeholder
+                // Logger.info( {
+                //     message: `FTP representation type selected for ${purpose?.resource}, but not implemented.`,
+                //     location: 'ProviderExportService',
+                // });
+                //
+                // let cred;
+                //
+                // const ftpConfig =
+                //     catalogSoftwareResource?.representation?.ftp;
+                //
+                // if (!ftpConfig.host) {
+                //     let message = `No ftp host defined for ${purpose?.resource} in catalog`
+                //     Logger.error({
+                //         message: message,
+                //         location: 'ProviderExportService',
+                //     });
+                //     throw new Error(message)
+                // }
+                //
+                // if (!ftpConfig?.port) {
+                //     let message = `No ftp port defined for ${purpose?.resource} in catalog`
+                //     Logger.error({
+                //         message: message,
+                //         location: 'ProviderExportService',
+                //     });
+                //     throw new Error(message)
+                // }
+                //
+                // if (!ftpConfig?.path) {
+                //     let message = `No ftp path defined for ${purpose?.resource} in catalog`
+                //     Logger.error({
+                //         message: message,
+                //         location: 'ProviderExportService',
+                //     });
+                //     throw new Error(message)
+                // }
+                //
+                // if(!data?.host || !data?.port || !data?.path){
+                //     let message = `Provided FTP data is misconfigured the data exchange cannot be completed`
+                //     Logger.error({
+                //         message: message,
+                //         location: 'ProviderExportService',
+                //     });
+                //     throw new Error(message)
+                // }
+                //
+                // Logger.info( { message: `Starting FTP process between ftp://${data.host}:${data.port} → ftp://${ftpConfig.host}:${ftpConfig.port}`});
+                //
+                // return new Promise((resolve, reject) => {
+                //     const conn = new Client();
+                //
+                //     conn
+                //         .on('ready', () => {
+                //
+                //             conn.sftp(async (err, sftp) => {
+                //                 if (err) return reject(err);
+                //
+                //                 try {
+                //                     // Upload
+                //                     const dt = readFileSync('src/config.sample.json');
+                //                     await new Promise((res, rej) =>
+                //                         sftp.writeFile('/upload/local.txt', dt, err => (err ? rej(err) : res(null)))
+                //                     );
+                //
+                //                     // Download
+                //                     const remoteData = await new Promise<Buffer>((res, rej) =>
+                //                         sftp.readFile('/upload/local.txt', (err, buffer) =>
+                //                             err ? rej(err) : res(buffer)
+                //                         )
+                //                     );
+                //
+                //                     writeFileSync('download.txt', remoteData);
+                //
+                //                     conn.end();
+                //
+                //                     Logger.info( { message: `Transfer completed FTP process between ftp://${data.host}:${data.port} → ftp://${ftpConfig.host}:${ftpConfig.port}`});
+                //                     await dataExchange?.updateStatus(DataExchangeStatusEnum.IMPORT_SUCCESS);
+                //                     resolve(null);
+                //                 } catch (e) {
+                //                     reject(e);
+                //                 }
+                //             });
+                //         })
+                //         .connect({
+                //             host: ftpConfig.host,
+                //             port: ftpConfig.port,
+                //             username: "user2",
+                //             password: "password2"
+                //         });
+                // });
 
-                if (catalogSoftwareResource.isAPI) {
-                    if (apiResponseRepresentation) {
-                        const [providerImportData] = await handle(
-                            providerImport(
-                                dataExchange.providerEndpoint,
-                                consumerResponse,
-                                dataExchange._id.toString()
-                            )
-                        );
-                    }
-                    await dataExchange?.updateStatus(
-                        DataExchangeStatusEnum.IMPORT_SUCCESS
-                    );
+                //get contract
+                const [contractResp] = await handle(getContract(dataExchange.contract));
+
+                if(contractResp){
+                    await dataExchange?.updateStatus(DataExchangeStatusEnum.TRANSFER_STARTED);
                 }
 
                 break;
+            }
+            default: {
+                    throw new Error('Representation type not supported');
+                }
         }
-        await dataExchange?.updateStatus(DataExchangeStatusEnum.IMPORT_SUCCESS);
     }
 };
