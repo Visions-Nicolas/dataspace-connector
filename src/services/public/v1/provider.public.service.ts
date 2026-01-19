@@ -19,6 +19,7 @@ import { checksum } from '../../../functions/checksum.function';
 import { getEndpoint } from '../../../libs/loaders/configuration';
 import { getCredentialByIdService } from '../../private/v1/credential.private.service';
 import postgres from 'postgres';
+import {amqpPublisher, kafkaPublisher, websocketPublisher} from "../../../utils/publisher";
 
 interface IProviderExportServiceOptions {
     infrastructureConfigurationId?: string;
@@ -215,59 +216,166 @@ export const ProviderExportService = async (
                                 break;
                             }
                             case 'FTP': {
-                                // try {
-                                //     // FTP implementation placeholder
-                                //     Logger.info( {
-                                //         message: `FTP representation type selected for ${resourceSD}, but not implemented.`,
-                                //         location: 'ProviderExportService',
-                                //     });
-                                //
-                                //     let cred;
-                                //
-                                //     const ftpConfig =
-                                //         endpointData?.representation?.ftp;
-                                //
-                                //     if (!ftpConfig.host) {
-                                //         let message = `No ftp host defined for ${resourceSD} in catalog`
-                                //         Logger.error({
-                                //             message: message,
-                                //             location: 'ProviderExportService',
-                                //         });
-                                //        throw new Error(message)
-                                //     }
-                                //
-                                //     if (!ftpConfig?.port) {
-                                //         let message = `No ftp port defined for ${resourceSD} in catalog`
-                                //         Logger.error({
-                                //             message: message,
-                                //             location: 'ProviderExportService',
-                                //         });
-                                //         throw new Error(message)
-                                //     }
-                                //
-                                //     if (!ftpConfig?.path) {
-                                //         let message = `No ftp path defined for ${resourceSD} in catalog`
-                                //         Logger.error({
-                                //             message: message,
-                                //             location: 'ProviderExportService',
-                                //         });
-                                //         throw new Error(message)
-                                //     }
-                                //
-                                //     data = ftpConfig;
-                                //
-                                // } catch (e) {
-                                //     Logger.error({
-                                //         message: `Error retrieving FTP data for ${resourceSD}: ${e.message}`,
-                                //         location: 'ProviderExportService',
-                                //     });
-                                //
-                                //     throw e;
-                                // }
+                                try {
+                                    // FTP implementation placeholder
+                                    Logger.info( {
+                                        message: `FTP representation type selected for ${resourceSD}, but not implemented.`,
+                                        location: 'ProviderExportService',
+                                    });
+
+                                    const ftpConfig =
+                                        endpointData?.representation?.ftp;
+
+                                    if (!ftpConfig.host) {
+                                        let message = `No ftp host defined for ${resourceSD} in catalog`
+                                        Logger.error({
+                                            message: message,
+                                            location: 'ProviderExportService',
+                                        });
+                                       throw new Error(message)
+                                    }
+
+                                    if (!ftpConfig?.port) {
+                                        let message = `No ftp port defined for ${resourceSD} in catalog`
+                                        Logger.error({
+                                            message: message,
+                                            location: 'ProviderExportService',
+                                        });
+                                        throw new Error(message)
+                                    }
+
+                                    if (!ftpConfig?.path) {
+                                        let message = `No ftp path defined for ${resourceSD} in catalog`
+                                        Logger.error({
+                                            message: message,
+                                            location: 'ProviderExportService',
+                                        });
+                                        throw new Error(message)
+                                    }
+
+                                    data = ftpConfig;
+
+                                } catch (e) {
+                                    Logger.error({
+                                        message: `Error retrieving FTP data for ${resourceSD}: ${e.message}`,
+                                        location: 'ProviderExportService',
+                                    });
+
+                                    throw e;
+                                }
+                                break;
+                            }
+                            case 'KAFKA': {
+                                try {
+                                    // Kafka implementation placeholder
+                                    Logger.info( {
+                                        message: `KAFKA representation type selected for ${resourceSD}, but not implemented.`,
+                                        location: 'ProviderExportService',
+                                    });
+
+                                    const kafkaConfig =
+                                        endpointData?.representation?.kafka;
+
+                                    if (!kafkaConfig.brokers) {
+                                        let message = `No kafka brokers defined for ${resourceSD} in catalog`
+                                        Logger.error({
+                                            message: message,
+                                            location: 'ProviderExportService',
+                                        });
+                                       throw new Error(message)
+                                    }
+
+                                    if (!kafkaConfig?.topic) {
+                                        let message = `No kafka topic defined for ${resourceSD} in catalog`
+                                        Logger.error({
+                                            message: message,
+                                            location: 'ProviderExportService',
+                                        });
+                                        throw new Error(message)
+                                    }
+
+                                    data = kafkaConfig;
+
+                                    await kafkaPublisher(dataExchange);
+
+                                } catch (e) {
+                                    Logger.error({
+                                        message: `Error retrieving KAFKA data for ${resourceSD}: ${e.message}`,
+                                        location: 'ProviderExportService',
+                                    });
+
+                                    throw e;
+                                }
+                                break;
+                            }
+                            case 'WEBSOCKET': {
+                                try {
+                                    // WEBSOCKET implementation placeholder
+                                    Logger.info( {
+                                        message: `WEBSOCKET representation type selected for ${resourceSD}, but not implemented.`,
+                                        location: 'ProviderExportService',
+                                    });
+
+                                    const websocketConfig =
+                                        endpointData?.representation?.websocket;
+
+                                    if (!websocketConfig.url) {
+                                        let message = `No websocket url defined for ${resourceSD} in catalog`
+                                        Logger.error({
+                                            message: message,
+                                            location: 'ProviderExportService',
+                                        });
+                                       throw new Error(message)
+                                    }
+
+                                    data = websocketConfig;
+                                    await websocketPublisher(dataExchange);
+
+                                } catch (e) {
+                                    Logger.error({
+                                        message: `Error retrieving WEBSOCKET data for ${resourceSD}: ${e.message}`,
+                                        location: 'ProviderExportService',
+                                    });
+
+                                    throw e;
+                                }
+                                break;
+                            }
+                            case 'AMQP': {
+                                try {
+                                    // AMPQP implementation placeholder
+                                    Logger.info( {
+                                        message: `AMPQP representation type selected for ${resourceSD}, but not implemented.`,
+                                        location: 'ProviderExportService',
+                                    });
+
+                                    const amqpConfig =
+                                        endpointData?.representation?.ampqp;
+
+                                    if (!amqpConfig.url) {
+                                        let message = `No ampqp url defined for ${resourceSD} in catalog`
+                                        Logger.error({
+                                            message: message,
+                                            location: 'ProviderExportService',
+                                        });
+                                       throw new Error(message)
+                                    }
+
+                                    data = amqpConfig;
+                                    await amqpPublisher(dataExchange);
+
+                                } catch (e) {
+                                    Logger.error({
+                                        message: `Error retrieving AMPQP data for ${resourceSD}: ${e.message}`,
+                                        location: 'ProviderExportService',
+                                    });
+
+                                    return e;
+                                }
                                 break;
                             }
                             default: {
-                                throw new Error('Representation type not supported');
+                                new Error('Representation type not supported');
                             }
                         }
                     }
@@ -280,7 +388,7 @@ export const ProviderExportService = async (
                         if (endpointData?.representation?.mimeType &&
                             !endpointData?.representation?.mimeType?.includes('application/json') &&
                             !endpointData?.representation?.mimeType?.includes('text/plain')) {
-                            throw new Error(
+                            return new Error(
                                 `Mimetype validation failed for service chain, only 'application/json' or 'text/plain' supported, got: ${endpointData?.representation?.mimeType} for ${resourceSD}`
                             );
                         }
@@ -311,7 +419,7 @@ export const ProviderExportService = async (
 
             return true;
         } else {
-            throw new Error('PEP verification failed');
+            return new Error('PEP verification failed');
         }
     } catch (e) {
         Logger.error({
