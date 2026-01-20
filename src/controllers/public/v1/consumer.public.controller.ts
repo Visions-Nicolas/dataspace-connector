@@ -182,9 +182,9 @@ export const consumerExchange = async (
         }
 
         //Publisher
-        amqpPublisher(dataExchange);
-        kafkaPublisher(dataExchange);
-        websocketPublisher(dataExchange);
+        // amqpPublisher(dataExchange);
+        // kafkaPublisher(dataExchange);
+        // websocketPublisher(dataExchange);
 
         return restfulResponse(res, 200, { success, dataExchange, message });
     } catch (e) {

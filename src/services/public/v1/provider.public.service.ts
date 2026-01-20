@@ -20,6 +20,8 @@ import { getEndpoint } from '../../../libs/loaders/configuration';
 import { getCredentialByIdService } from '../../private/v1/credential.private.service';
 import postgres from 'postgres';
 import {amqpPublisher, kafkaPublisher, websocketPublisher} from "../../../utils/publisher";
+import  { Client } from 'ssh2'
+import {exec} from "node:child_process";
 
 interface IProviderExportServiceOptions {
     infrastructureConfigurationId?: string;
@@ -226,34 +228,62 @@ export const ProviderExportService = async (
                                     const ftpConfig =
                                         endpointData?.representation?.ftp;
 
-                                    if (!ftpConfig.host) {
-                                        let message = `No ftp host defined for ${resourceSD} in catalog`
-                                        Logger.error({
-                                            message: message,
-                                            location: 'ProviderExportService',
-                                        });
-                                       throw new Error(message)
+                                    if (!ftpConfig.command) {
+                                        new Error('Aucune commande définie dans ftpConfig.');
+                                        return;
                                     }
+                                    for (const purpose of dataExchange.purposes) {
+                                        const [catalogSoftwareResource] = await handle(
+                                            getCatalogData(purpose.resource)
+                                        );
 
-                                    if (!ftpConfig?.port) {
-                                        let message = `No ftp port defined for ${resourceSD} in catalog`
-                                        Logger.error({
-                                            message: message,
-                                            location: 'ProviderExportService',
+                                        if(catalogSoftwareResource.representation.type !== 'FTP'){
+                                            Logger.warn({
+                                                message: `Skipping FTP command execution for purpose ${purpose.resource} with representation type ${catalogSoftwareResource.representation.type}`,
+                                                location: 'ProviderExportService',
+                                            });
+                                            continue;
+                                        }
+
+                                        const serviceRepresentation = catalogSoftwareResource?.representation.ftp;
+
+                                        let command = ftpConfig.command;
+                                        const matches = command.match(/{\w+}/g);
+                                        if (matches) {
+                                            matches.forEach((match: string) => {
+                                                const key = match.replace(/[{}]/g, '');
+                                                if (serviceRepresentation[key]) {
+                                                    command = command.replace(match, serviceRepresentation[key]);
+                                                }
+                                            });
+                                        }
+
+                                        exec(command, (error, stdout, stderr) => {
+                                            if(error) {
+                                                Logger.error({
+                                                    message: `Error executing FTP command for ${resourceSD}: ${error.message}`,
+                                                    location: 'ProviderExportService',
+                                                });
+                                                throw error;
+                                            }
+
+                                            if (stderr) {
+                                                Logger.error({
+                                                    message: `FTP command stderr for ${resourceSD}: ${stderr}`,
+                                                    location: 'ProviderExportService',
+                                                });
+                                            }
+
+                                            if (stdout) {
+                                                Logger.info({
+                                                    message: `FTP command stdout for ${resourceSD}: ${stdout}`,
+                                                    location: 'ProviderExportService',
+                                                });
+
+                                                data = stdout;
+                                            }
                                         });
-                                        throw new Error(message)
                                     }
-
-                                    if (!ftpConfig?.path) {
-                                        let message = `No ftp path defined for ${resourceSD} in catalog`
-                                        Logger.error({
-                                            message: message,
-                                            location: 'ProviderExportService',
-                                        });
-                                        throw new Error(message)
-                                    }
-
-                                    data = ftpConfig;
 
                                 } catch (e) {
                                     Logger.error({

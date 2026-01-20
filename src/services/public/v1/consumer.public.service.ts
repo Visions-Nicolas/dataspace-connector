@@ -18,10 +18,6 @@ import { postRepresentation } from '../../../libs/loaders/representationFetcher'
 import { providerImport } from '../../../libs/third-party/provider';
 import { getCredentialByIdService } from '../../private/v1/credential.private.service';
 import postgres from 'postgres';
-import  { Client } from 'ssh2'
-import {readFile, writeFileSync} from "node:fs";
-import {readFileSync, writeFile} from "fs";
-import {throws} from "node:assert";
 
 export const triggerBilateralFlow = async (props: {
     contract: string;
