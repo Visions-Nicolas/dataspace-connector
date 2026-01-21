@@ -506,3 +506,17 @@ const triggerGenericFlow = async (props: {
         });
     }
 };
+
+/**
+ * Provider DSP Service
+ */
+export const providerDSPService = async (
+    consumerDataExchange: string,
+    options?: IProviderExportServiceOptions
+) => {
+    //TO DO: Implement the DSP logic for provider
+    Logger.info({
+        message: `Provider DSP Service not implemented yet.`,
+        location: 'providerDSPService',
+    });
+}

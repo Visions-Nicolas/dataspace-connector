@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { restfulResponse } from '../../../libs/api/RESTfulResponse';
 import { DataExchange, IDataExchange } from '../../../utils/types/dataExchange';
 import { handle } from '../../../libs/loaders/handler';
-import { providerExport } from '../../../libs/third-party/provider';
+import {providerDSP, providerExport} from '../../../libs/third-party/provider';
 import { Logger } from '../../../libs/loggers';
 import { DataExchangeStatusEnum } from '../../../utils/enums/dataExchangeStatusEnum';
 import {
@@ -10,7 +10,7 @@ import {
     triggerBilateralFlow,
     triggerEcosystemFlow,
 } from '../../../services/public/v1/consumer.public.service';
-import { ProviderExportService } from '../../../services/public/v1/provider.public.service';
+import {providerDSPService, ProviderExportService} from '../../../services/public/v1/provider.public.service';
 import { getEndpoint } from '../../../libs/loaders/configuration';
 import { ExchangeError } from '../../../libs/errors/exchangeError';
 import axios from 'axios';
@@ -41,6 +41,7 @@ export const consumerExchange = async (
             purposes,
             serviceChainId,
             serviceChainParams,
+            protocol,
         } = req.body;
 
         //Create a data Exchange
@@ -48,7 +49,8 @@ export const consumerExchange = async (
         let providerEndpoint: string;
 
         // ecosystem contract
-        if (contract.includes('contracts')) {
+        if (contract.includes('contracts'))
+        {
             const {
                 dataExchange: ecosystemDataExchange,
                 providerEndpoint: endpoint,
@@ -66,7 +68,8 @@ export const consumerExchange = async (
 
             dataExchange = ecosystemDataExchange;
             if (endpoint) providerEndpoint = endpoint;
-        } else {
+        } else
+        {
             const {
                 dataExchange: bilateralDataExchange,
                 providerEndpoint: endpoint,
@@ -140,8 +143,8 @@ export const consumerExchange = async (
             }
         }
 
-        //Trigger provider.ts endpoint exchange
-        if (dataExchange.consumerEndpoint) {
+        //default protocol and use provider export service
+        if (dataExchange.consumerEndpoint && (!protocol || protocol !== 'dsp')) {
             const updatedDataExchange = await DataExchange.findById(
                 dataExchange._id
             );
@@ -149,7 +152,9 @@ export const consumerExchange = async (
             await ProviderExportService(
                 updatedDataExchange.consumerDataExchange
             );
-        } else {
+        }
+        //default protocol and request provider
+        else if(!dataExchange.consumerEndpoint && (!protocol || protocol !== 'dsp')){
             if (providerEndpoint === (await getEndpoint())) {
                 Logger.error({
                     message: "Can't make request to itself.",
@@ -165,6 +170,21 @@ export const consumerExchange = async (
                 providerExport(providerEndpoint, dataExchange._id.toString())
             );
         }
+        //dsp protocol and use service
+        else if(dataExchange.consumerEndpoint && protocol === "dsp"){
+            await providerDSPService(dataExchange.consumerDataExchange);
+        }
+        //dsp protocol and request provider
+        else if(!dataExchange.consumerEndpoint && protocol === "dsp"){
+            await handle(
+                providerDSP(providerEndpoint, dataExchange._id.toString())
+            );
+        }
+        //default case error
+        else {
+            throw new Error('Invalid protocol specified.');
+        }
+
         const startTime = Date.now();
         const timeout = 30 * 1000;
         let message: string;
