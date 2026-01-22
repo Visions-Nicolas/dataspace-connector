@@ -121,5 +121,4 @@ sequenceDiagram
 
 ## Other flows
 
-- Provider can push message to data broker:
-- 
+- Provider can push message to data broker

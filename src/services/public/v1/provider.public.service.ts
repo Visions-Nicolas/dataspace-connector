@@ -248,43 +248,59 @@ export const ProviderExportService = async (
                                         const serviceRepresentation = catalogSoftwareResource?.representation.ftp;
 
                                         let command = ftpConfig.command;
-                                        const matches = command.match(/{\w+}/g);
+
+                                        const matches = command.match(/{\w+(\.\w+)?}/g);
                                         if (matches) {
                                             matches.forEach((match: string) => {
                                                 const key = match.replace(/[{}]/g, '');
-                                                if (serviceRepresentation[key]) {
-                                                    command = command.replace(match, serviceRepresentation[key]);
+                                                let value;
+                                                if (key.startsWith('service.')) {
+                                                    const subKey = key.split('.')[1];
+                                                    value = serviceRepresentation[subKey];
+                                                } else {
+                                                    value = ftpConfig[key];
+                                                }
+                                                if (value !== undefined) {
+                                                    command = command.replace(match, value);
                                                 }
                                             });
                                         }
 
-                                        exec(command, (error, stdout, stderr) => {
-                                            if(error) {
-                                                Logger.error({
-                                                    message: `Error executing FTP command for ${resourceSD}: ${error.message}`,
-                                                    location: 'ProviderExportService',
-                                                });
-                                                throw error;
-                                            }
+                                        await dataExchange?.updateStatus(DataExchangeStatusEnum.TRANSFER_STARTED);
 
-                                            if (stderr) {
-                                                Logger.error({
-                                                    message: `FTP command stderr for ${resourceSD}: ${stderr}`,
-                                                    location: 'ProviderExportService',
-                                                });
-                                            }
+                                        await new Promise<void>((resolve, reject) => {
+                                            exec(command, async (error, stdout, stderr) => {
+                                                if (error) {
+                                                    Logger.error({
+                                                        message: `Error executing FTP command for ${resourceSD}: ${error.message}`,
+                                                        location: 'ProviderExportService',
+                                                    });
+                                                    reject(error);
+                                                    return;
+                                                }
 
-                                            if (stdout) {
-                                                Logger.info({
-                                                    message: `FTP command stdout for ${resourceSD}: ${stdout}`,
-                                                    location: 'ProviderExportService',
-                                                });
+                                                if (stderr) {
+                                                    Logger.error({
+                                                        message: `FTP command stderr for ${resourceSD}: ${stderr}`,
+                                                        location: 'ProviderExportService',
+                                                    });
+                                                }
 
-                                                data = stdout;
-                                            }
+                                                if (stdout) {
+                                                    Logger.info({
+                                                        message: `FTP command stdout for ${resourceSD}: ${stdout}`,
+                                                        location: 'ProviderExportService',
+                                                    });
+
+                                                    data = stdout;
+                                                    await dataExchange?.updateStatus(DataExchangeStatusEnum.TRANSFER_COMPLETED, data);
+                                                }
+                                                resolve();
+                                            });
                                         });
                                     }
 
+                                    break;
                                 } catch (e) {
                                     Logger.error({
                                         message: `Error retrieving FTP data for ${resourceSD}: ${e.message}`,
@@ -295,115 +311,115 @@ export const ProviderExportService = async (
                                 }
                                 break;
                             }
-                            case 'KAFKA': {
-                                try {
-                                    // Kafka implementation placeholder
-                                    Logger.info( {
-                                        message: `KAFKA representation type selected for ${resourceSD}, but not implemented.`,
-                                        location: 'ProviderExportService',
-                                    });
-
-                                    const kafkaConfig =
-                                        endpointData?.representation?.kafka;
-
-                                    if (!kafkaConfig.brokers) {
-                                        let message = `No kafka brokers defined for ${resourceSD} in catalog`
-                                        Logger.error({
-                                            message: message,
-                                            location: 'ProviderExportService',
-                                        });
-                                       throw new Error(message)
-                                    }
-
-                                    if (!kafkaConfig?.topic) {
-                                        let message = `No kafka topic defined for ${resourceSD} in catalog`
-                                        Logger.error({
-                                            message: message,
-                                            location: 'ProviderExportService',
-                                        });
-                                        throw new Error(message)
-                                    }
-
-                                    data = kafkaConfig;
-
-                                    await kafkaPublisher(dataExchange);
-
-                                } catch (e) {
-                                    Logger.error({
-                                        message: `Error retrieving KAFKA data for ${resourceSD}: ${e.message}`,
-                                        location: 'ProviderExportService',
-                                    });
-
-                                    throw e;
-                                }
-                                break;
-                            }
-                            case 'WEBSOCKET': {
-                                try {
-                                    // WEBSOCKET implementation placeholder
-                                    Logger.info( {
-                                        message: `WEBSOCKET representation type selected for ${resourceSD}, but not implemented.`,
-                                        location: 'ProviderExportService',
-                                    });
-
-                                    const websocketConfig =
-                                        endpointData?.representation?.websocket;
-
-                                    if (!websocketConfig.url) {
-                                        let message = `No websocket url defined for ${resourceSD} in catalog`
-                                        Logger.error({
-                                            message: message,
-                                            location: 'ProviderExportService',
-                                        });
-                                       throw new Error(message)
-                                    }
-
-                                    data = websocketConfig;
-                                    await websocketPublisher(dataExchange);
-
-                                } catch (e) {
-                                    Logger.error({
-                                        message: `Error retrieving WEBSOCKET data for ${resourceSD}: ${e.message}`,
-                                        location: 'ProviderExportService',
-                                    });
-
-                                    throw e;
-                                }
-                                break;
-                            }
-                            case 'AMQP': {
-                                try {
-                                    // AMPQP implementation placeholder
-                                    Logger.info( {
-                                        message: `AMPQP representation type selected for ${resourceSD}, but not implemented.`,
-                                        location: 'ProviderExportService',
-                                    });
-
-                                    const amqpConfig =
-                                        endpointData?.representation?.ampqp;
-
-                                    if (!amqpConfig.url) {
-                                        let message = `No ampqp url defined for ${resourceSD} in catalog`
-                                        Logger.error({
-                                            message: message,
-                                            location: 'ProviderExportService',
-                                        });
-                                       throw new Error(message)
-                                    }
-
-                                    data = amqpConfig;
-                                    await amqpPublisher(dataExchange);
-
-                                } catch (e) {
-                                    Logger.error({
-                                        message: `Error retrieving AMPQP data for ${resourceSD}: ${e.message}`,
-                                        location: 'ProviderExportService',
-                                    });
-
-                                    return e;
-                                }
-                                break;
-                            }
+                            // case 'KAFKA': {
+                            //     try {
+                            //         // Kafka implementation placeholder
+                            //         Logger.info( {
+                            //             message: `KAFKA representation type selected for ${resourceSD}, but not implemented.`,
+                            //             location: 'ProviderExportService',
+                            //         });
+                            //
+                            //         const kafkaConfig =
+                            //             endpointData?.representation?.kafka;
+                            //
+                            //         if (!kafkaConfig.brokers) {
+                            //             let message = `No kafka brokers defined for ${resourceSD} in catalog`
+                            //             Logger.error({
+                            //                 message: message,
+                            //                 location: 'ProviderExportService',
+                            //             });
+                            //            throw new Error(message)
+                            //         }
+                            //
+                            //         if (!kafkaConfig?.topic) {
+                            //             let message = `No kafka topic defined for ${resourceSD} in catalog`
+                            //             Logger.error({
+                            //                 message: message,
+                            //                 location: 'ProviderExportService',
+                            //             });
+                            //             throw new Error(message)
+                            //         }
+                            //
+                            //         data = kafkaConfig;
+                            //
+                            //         await kafkaPublisher(dataExchange);
+                            //
+                            //     } catch (e) {
+                            //         Logger.error({
+                            //             message: `Error retrieving KAFKA data for ${resourceSD}: ${e.message}`,
+                            //             location: 'ProviderExportService',
+                            //         });
+                            //
+                            //         throw e;
+                            //     }
+                            //     break;
+                            // }
+                            // case 'WEBSOCKET': {
+                            //     try {
+                            //         // WEBSOCKET implementation placeholder
+                            //         Logger.info( {
+                            //             message: `WEBSOCKET representation type selected for ${resourceSD}, but not implemented.`,
+                            //             location: 'ProviderExportService',
+                            //         });
+                            //
+                            //         const websocketConfig =
+                            //             endpointData?.representation?.websocket;
+                            //
+                            //         if (!websocketConfig.url) {
+                            //             let message = `No websocket url defined for ${resourceSD} in catalog`
+                            //             Logger.error({
+                            //                 message: message,
+                            //                 location: 'ProviderExportService',
+                            //             });
+                            //            throw new Error(message)
+                            //         }
+                            //
+                            //         data = websocketConfig;
+                            //         await websocketPublisher(dataExchange);
+                            //
+                            //     } catch (e) {
+                            //         Logger.error({
+                            //             message: `Error retrieving WEBSOCKET data for ${resourceSD}: ${e.message}`,
+                            //             location: 'ProviderExportService',
+                            //         });
+                            //
+                            //         throw e;
+                            //     }
+                            //     break;
+                            // }
+                            // case 'AMQP': {
+                            //     try {
+                            //         // AMPQP implementation placeholder
+                            //         Logger.info( {
+                            //             message: `AMPQP representation type selected for ${resourceSD}, but not implemented.`,
+                            //             location: 'ProviderExportService',
+                            //         });
+                            //
+                            //         const amqpConfig =
+                            //             endpointData?.representation?.ampqp;
+                            //
+                            //         if (!amqpConfig.url) {
+                            //             let message = `No ampqp url defined for ${resourceSD} in catalog`
+                            //             Logger.error({
+                            //                 message: message,
+                            //                 location: 'ProviderExportService',
+                            //             });
+                            //            throw new Error(message)
+                            //         }
+                            //
+                            //         data = amqpConfig;
+                            //         await amqpPublisher(dataExchange);
+                            //
+                            //     } catch (e) {
+                            //         Logger.error({
+                            //             message: `Error retrieving AMPQP data for ${resourceSD}: ${e.message}`,
+                            //             location: 'ProviderExportService',
+                            //         });
+                            //
+                            //         return e;
+                            //     }
+                            //     break;
+                            // }
                             default: {
                                 new Error('Representation type not supported');
                             }
@@ -506,17 +522,3 @@ const triggerGenericFlow = async (props: {
         });
     }
 };
-
-/**
- * Provider DSP Service
- */
-export const providerDSPService = async (
-    consumerDataExchange: string,
-    options?: IProviderExportServiceOptions
-) => {
-    //TO DO: Implement the DSP logic for provider
-    Logger.info({
-        message: `Provider DSP Service not implemented yet.`,
-        location: 'providerDSPService',
-    });
-}

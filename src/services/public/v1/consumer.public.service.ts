@@ -602,104 +602,10 @@ export const consumerImportService = async (props: {
                 break;
             }
             case 'FTP': {
-                // // FTP implementation placeholder
-                // Logger.info( {
-                //     message: `FTP representation type selected for ${purpose?.resource}, but not implemented.`,
-                //     location: 'ProviderExportService',
-                // });
-                //
-                // let cred;
-                //
-                // const ftpConfig =
-                //     catalogSoftwareResource?.representation?.ftp;
-                //
-                // if (!ftpConfig.host) {
-                //     let message = `No ftp host defined for ${purpose?.resource} in catalog`
-                //     Logger.error({
-                //         message: message,
-                //         location: 'ProviderExportService',
-                //     });
-                //     throw new Error(message)
-                // }
-                //
-                // if (!ftpConfig?.port) {
-                //     let message = `No ftp port defined for ${purpose?.resource} in catalog`
-                //     Logger.error({
-                //         message: message,
-                //         location: 'ProviderExportService',
-                //     });
-                //     throw new Error(message)
-                // }
-                //
-                // if (!ftpConfig?.path) {
-                //     let message = `No ftp path defined for ${purpose?.resource} in catalog`
-                //     Logger.error({
-                //         message: message,
-                //         location: 'ProviderExportService',
-                //     });
-                //     throw new Error(message)
-                // }
-                //
-                // if(!data?.host || !data?.port || !data?.path){
-                //     let message = `Provided FTP data is misconfigured the data exchange cannot be completed`
-                //     Logger.error({
-                //         message: message,
-                //         location: 'ProviderExportService',
-                //     });
-                //     throw new Error(message)
-                // }
-                //
-                // Logger.info( { message: `Starting FTP process between ftp://${data.host}:${data.port} → ftp://${ftpConfig.host}:${ftpConfig.port}`});
-                //
-                // return new Promise((resolve, reject) => {
-                //     const conn = new Client();
-                //
-                //     conn
-                //         .on('ready', () => {
-                //
-                //             conn.sftp(async (err, sftp) => {
-                //                 if (err) return reject(err);
-                //
-                //                 try {
-                //                     // Upload
-                //                     const dt = readFileSync('src/config.sample.json');
-                //                     await new Promise((res, rej) =>
-                //                         sftp.writeFile('/upload/local.txt', dt, err => (err ? rej(err) : res(null)))
-                //                     );
-                //
-                //                     // Download
-                //                     const remoteData = await new Promise<Buffer>((res, rej) =>
-                //                         sftp.readFile('/upload/local.txt', (err, buffer) =>
-                //                             err ? rej(err) : res(buffer)
-                //                         )
-                //                     );
-                //
-                //                     writeFileSync('download.txt', remoteData);
-                //
-                //                     conn.end();
-                //
-                //                     Logger.info( { message: `Transfer completed FTP process between ftp://${data.host}:${data.port} → ftp://${ftpConfig.host}:${ftpConfig.port}`});
-                //                     await dataExchange?.updateStatus(DataExchangeStatusEnum.IMPORT_SUCCESS);
-                //                     resolve(null);
-                //                 } catch (e) {
-                //                     reject(e);
-                //                 }
-                //             });
-                //         })
-                //         .connect({
-                //             host: ftpConfig.host,
-                //             port: ftpConfig.port,
-                //             username: "user2",
-                //             password: "password2"
-                //         });
-                // });
-
-                //get contract
-                const [contractResp] = await handle(getContract(dataExchange.contract));
-
-                if(contractResp){
-                    await dataExchange?.updateStatus(DataExchangeStatusEnum.TRANSFER_STARTED);
-                }
+                Logger.info({
+                    message: `Executing FTP for ${purpose.resource}, received data: ${JSON.stringify(data, null, 2)}`,
+                    location: 'consumerImportService',
+                });
 
                 break;
             }
