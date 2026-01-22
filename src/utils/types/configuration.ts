@@ -20,6 +20,7 @@ interface IConfiguration {
     consentJWT?: string;
     expressLimitSize?: string;
     serviceChainAdapter?: string;
+    serviceChainAdapterTimeout?: number;
     ampq?: {
         host: string;
         queue?: string;
