@@ -505,12 +505,6 @@ export const consumerImportService = async (props: {
         //Import data to endpoint of softwareResource
         const endpoint = catalogSoftwareResource?.representation?.url;
 
-        if (!endpoint) {
-            await dataExchange?.updateStatus(
-                DataExchangeStatusEnum.CONSUMER_IMPORT_ERROR
-            );
-        }
-
         let consumerResponse;
 
         switch (catalogSoftwareResource?.representation?.type) {
